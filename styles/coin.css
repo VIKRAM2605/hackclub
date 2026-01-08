@@ -19,11 +19,17 @@ body {
     justify-content: center;
     font-weight: bold;
     color: #8B4513;
-    transform: rotate();
+    bottom: 0;
     }
 
-@keyframes fall {
-    to {
-        transform: translateY(100vh);
-        }
+@keyframes popup {
+    0%{
+        transform: translateY(0) scale(0);
+    }
+    50%{
+        transform: translateY(-60px) scale(1.2);
+    }
+    100%{
+        transform: translateY(-10px) scale(1);
+    }
 }

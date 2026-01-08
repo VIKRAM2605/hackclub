@@ -6,10 +6,10 @@ function spawncoin(){
 
  const positionX=Math.random()*(window.innerWidth-40);
  coin.style.left=positionX+'px';
- coin.style.top='0px';
+ coin.style.bottom='0px';
  
  document.body.appendChild(coin);
- coin.style.animation='fall 3s linear';
+ coin.style.animation='popup 1.5s ease-out forwards';
 }
 
 //helper function to set the upper and lower bound for the random function
