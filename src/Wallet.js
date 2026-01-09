@@ -1,4 +1,4 @@
-function currentBalance(balance = 0) {
+export function currentBalance(balance = 0) {
     let wallet = document.getElementById('walletBalance');
     if (!wallet) {
         const wallet = document.createElement('div');
@@ -12,10 +12,10 @@ function currentBalance(balance = 0) {
 
 }
 
-function addBalance() {
+export function addBalance(amount=2) {
     const wallet = document.getElementById('walletBalance');
     const balanceFloat = parseFloat(wallet.textContent.replace('$', ""));
-    const formattedBalanceFloat = balanceFloat + 20.00;
+    const formattedBalanceFloat = balanceFloat + amount;
     console.log(formattedBalanceFloat);
     currentBalance(formattedBalanceFloat)
 }

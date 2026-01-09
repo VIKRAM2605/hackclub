@@ -1,5 +1,6 @@
+
 //function to spawn coin
-function spawncoin(){
+export function spawncoin(){
  const coin = document.createElement('div');
  coin.className='coin';
  coin.src='../assests/coin.webp'
@@ -13,12 +14,9 @@ function spawncoin(){
 }
 
 //helper function to set the upper and lower bound for the random function
-function randomInt(min,max){
+export function randomInt(min,max){
      return Math.floor(Math.random()*(max-min+1)+min);
 }
 
-//time to spawn the coin with upper and lower bound
-setInterval(()=>{
-    spawncoin();
-},randomInt(50000,100000));
+
 
