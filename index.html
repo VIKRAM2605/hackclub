@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cousy Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styles/coin.css">
     <link rel="stylesheet" href="styles/wallet.css">
     <script type="module" src="src/Main.js" defer></script>
@@ -13,9 +14,22 @@
 <body id="body">
     <div>
         <div id="startpage" class="startpagemenu">
-            <div>
                 <button id="start-button">
                     Start Game
+                </button>
+        </div>
+        <div id="pausemenubutton" class="pausepagemenubutton">
+            <button id="pause-button" class="hamburger">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div id="pausemenupage">
+            <div>
+                <button id="resume-button">
+                    Resume
+                </button>
+                <button id="quittomainmenu-button">
+                    Quit to Main Menu
                 </button>
             </div>
         </div>
