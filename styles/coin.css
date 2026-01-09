@@ -4,7 +4,7 @@ body {
     position: relative;
     height: 100vh;
     background: #1a1a2e;
-    }
+}
 
 .coin {
     position: absolute;
@@ -20,16 +20,33 @@ body {
     font-weight: bold;
     color: #8B4513;
     bottom: 0;
-    }
+}
 
 @keyframes popup {
-    0%{
+    0% {
         transform: translateY(0) scale(0);
     }
-    50%{
+
+    50% {
         transform: translateY(-60px) scale(1.2);
     }
-    100%{
+
+    100% {
         transform: translateY(-10px) scale(1);
+    }
+}
+
+@keyframes fadeout {
+    0% {
+        opacity: 1;
+    }
+    40% {
+        opacity: 0.7; 
+    }
+    70% {
+        opacity: 0.3; 
+    }
+    100% {
+        opacity: 0;
     }
 }
