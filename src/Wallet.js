@@ -5,7 +5,7 @@ export function currentBalance(balance = 0) {
         wallet.className = 'wallet';
         wallet.id = 'walletBalance'
         wallet.textContent = `$${balance.toFixed(2)}`;
-        document.getElementById('game-container').appendChild(wallet);
+        document.body.appendChild(wallet);
     }else{
         wallet.textContent=`$${balance.toFixed(2)}`;
     }
@@ -22,3 +22,13 @@ export function addBalance(amount=2) {
 
 currentBalance();
 addBalance()
+
+export function displayBalance(){
+    const wallet = document.getElementById('walletBalance');
+    wallet.style.display='block'
+}
+
+export function hideBalance(){
+    const wallet = document.getElementById('walletBalance');
+    wallet.style.display='none'
+}
