@@ -1,5 +1,5 @@
-import { renderObject } from "./ObjectCoordinates.js";
-import { drawFloor, kitchenSpriteLoaded } from "./SceneCreation.js";
+import { objectCoordinates, renderObject } from "./ObjectCoordinates.js";
+import { drawFloor, kitchenSpriteLoaded, tileSize } from "./SceneCreation.js";
 
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
@@ -9,6 +9,8 @@ canvas.height = 577;
 
 let playerSpriteLoaded = false;
 
+// Toggle this to see collision boxes (press 'C' key)
+let debugCollision = false;
 
 let player = {
     x: 64,
@@ -16,12 +18,15 @@ let player = {
     width: 20,
     height: 38,
     spriteName: 'player',
-    speed: 0.3,
+    speed: 0.5,
     direction: 'right',
     isMoving: false,
     frameIndex: 0,
     frameCounter: 0,
     animationSpeed: 18,
+    collisionWidth: 12,
+    collisionHeight: 16,
+    collisionOffsetY: 8 
 };
 
 const keys = {
@@ -30,7 +35,6 @@ const keys = {
     left: false,
     right: false
 };
-
 
 const sprites = {
     player: {
@@ -41,14 +45,75 @@ const sprites = {
             { x: 70, y: 56, w: 20, h: 34 },
             { x: 104, y: 58, w: 20, h: 34 },
             { x: 134, y: 58, w: 20, h: 34 },
-
         ]
     }
 };
 
 const spriteSheet = new Image();
-
 spriteSheet.src = 'assets/Chef A2.png';
+
+// Draw collision boxes for debugging
+function drawCollisionBoxes() {
+    if (!debugCollision) return;
+
+    // Draw player collision box
+    const playerBox = getPlayerCollisionBox(player.x, player.y);
+    ctx.strokeStyle = 'lime';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(
+        playerBox.left,
+        playerBox.top,
+        playerBox.right - playerBox.left,
+        playerBox.bottom - playerBox.top
+    );
+
+    // Draw object collision boxes
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 2;
+    for (const [objectName, coords] of Object.entries(objectCoordinates)) {
+        // Calculate base position (top-left of tile)
+        const baseTileX = coords.col * tileSize;
+        const baseTileY = coords.row * tileSize;
+        
+        // Get collision dimensions
+        const objWidth = coords.collisionWidth || tileSize;
+        const objHeight = coords.collisionHeight || tileSize;
+        
+        // Center the collision box within the tile (matching sprite centering)
+        // Then apply any custom offsets
+        const objX = baseTileX + (tileSize - objWidth) / 2 + (coords.offsetX || 0);
+        const objY = baseTileY + (tileSize - objHeight) / 2 + (coords.offsetY || 0);
+        
+        ctx.strokeRect(objX, objY, objWidth, objHeight);
+        
+        // Label the object
+        ctx.fillStyle = 'white';
+        ctx.font = '10px Arial';
+        ctx.fillText(objectName, objX, objY - 2);
+    }
+
+    // Draw wall boundaries
+    const margin = 24;
+    const wallPadding = -15;
+    const topWallPadding = -10;
+    ctx.strokeStyle = 'yellow';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(
+        margin + wallPadding,
+        margin + wallPadding,
+        canvas.width - 2 * (margin + wallPadding),
+        canvas.height - 2 * (margin + wallPadding)
+    );
+}
+
+function getPlayerCollisionBox(x, y) {
+    return {
+        left: x - player.collisionWidth / 2,
+        right: x + player.collisionWidth / 2,
+        top: y - player.collisionHeight / 2 + player.collisionOffsetY,
+        bottom: y + player.collisionHeight / 2 + player.collisionOffsetY
+    };
+}
 
 export function drawPlayer() {
     const walkFrames = sprites.player.walk;
@@ -57,11 +122,10 @@ export function drawPlayer() {
         : sprites.player.idle;
 
     ctx.save();
-
     ctx.translate(player.x, player.y);
 
     if (player.direction === 'left') {
-        ctx.scale(-1, 1);  // Flip horizontally
+        ctx.scale(-1, 1);
     }
 
     ctx.drawImage(
@@ -70,13 +134,12 @@ export function drawPlayer() {
         currentFrame.y,
         currentFrame.w,
         currentFrame.h,
-        -player.width / 2,   // Center on position
+        -player.width / 2,
         -player.height / 2,
         player.width,
         player.height
     );
 
-    // Restore context
     ctx.restore();
 }
 
@@ -92,27 +155,43 @@ export function updatePlayer() {
     player.isMoving = (moveX !== 0 || moveY !== 0);
 
     if (player.isMoving) {
+        // Normalize diagonal movement
         if (moveX !== 0 && moveY !== 0) {
             moveX *= 0.707;
             moveY *= 0.707;
         }
 
-        const newX = player.x + (moveX * player.speed);
-        const newY = player.y + (moveY * player.speed);
+        const stepX = moveX * player.speed;
+        const stepY = moveY * player.speed;
+        
+        const newX = player.x + stepX;
+        const newY = player.y + stepY;
 
+        // Try moving in both directions first
         if (isValidPosition(newX, newY)) {
             player.x = newX;
             player.y = newY;
+        } 
+        // If diagonal movement blocked, try sliding along obstacles
+        else {
+            // Try moving only horizontally (slide along vertical walls/objects)
+            if (stepX !== 0 && isValidPosition(newX, player.y)) {
+                player.x = newX;
+            }
+            // Try moving only vertically (slide along horizontal walls/objects)
+            if (stepY !== 0 && isValidPosition(player.x, newY)) {
+                player.y = newY;
+            }
         }
 
+        // Update direction based on input
         if (moveX < 0) player.direction = 'left';
         else if (moveX > 0) player.direction = 'right';
         else if (moveY < 0) player.direction = 'up';
         else if (moveY > 0) player.direction = 'down';
 
-
         player.frameCounter++;
-
+        
         if (player.frameCounter >= player.animationSpeed) {
             player.frameCounter = 0;
             player.frameIndex = (player.frameIndex + 1) % 5;
@@ -126,12 +205,49 @@ export function updatePlayer() {
 
 export function isValidPosition(x, y) {
     const margin = 24;
-    const padding = 0;
+    const wallPadding = -15;
+    const topWallPadding = -3;
+    // Get player collision box using the custom collision dimensions
+    const playerBox = getPlayerCollisionBox(x, y);
 
-    if (x - padding < margin) return false;  // Left wall
-    if (x + padding > canvas.width - margin) return false;  // Right wall
-    if (y - padding < margin) return false;  // Top wall
-    if (y + padding > canvas.height - margin) return false;  // Bottom wall
+    // Check wall boundaries
+    if (playerBox.left < margin + wallPadding) return false;
+    if (playerBox.right > canvas.width - margin - wallPadding) return false;
+    if (playerBox.top < margin + topWallPadding) return false;
+    if (playerBox.bottom > canvas.height - margin - wallPadding) return false;
+
+    // Check collision with objects
+    for (const [objectName, coords] of Object.entries(objectCoordinates)) {
+        // Calculate base position top-left of tile
+        const baseTileX = coords.col * tileSize;
+        const baseTileY = coords.row * tileSize;
+        
+        // Get collision dimensions
+        const objWidth = coords.collisionWidth || tileSize;
+        const objHeight = coords.collisionHeight || tileSize;
+        
+        // Center the collision box within the tile
+        // Then apply any custom offsets
+        const objX = baseTileX + (tileSize - objWidth) / 2 + (coords.offsetX || 0);
+        const objY = baseTileY + (tileSize - objHeight) / 2 + (coords.offsetY || 0);
+        
+        const objBox = {
+            left: objX,
+            right: objX + objWidth,
+            top: objY,
+            bottom: objY + objHeight
+        };
+
+        // AABB collision detection
+        if (
+            playerBox.right > objBox.left &&
+            playerBox.left < objBox.right &&
+            playerBox.bottom > objBox.top &&
+            playerBox.top < objBox.bottom
+        ) {
+            return false;
+        }
+    }
 
     return true;
 }
@@ -142,6 +258,7 @@ export function gameLoop() {
     drawFloor();
     renderObject();
     drawPlayer();
+    drawCollisionBoxes();
     requestAnimationFrame(gameLoop);
 }
 
@@ -153,14 +270,13 @@ spriteSheet.onload = () => {
 
 function checkAndStart() {
     if (playerSpriteLoaded && kitchenSpriteLoaded) {
-        console.log('Starting game loop! ');
+        console.log('Starting game loop!');
+        console.log('Press C to toggle collision debug view');
         gameLoop();
     } else {
         setTimeout(checkAndStart, 100);
     }
 }
-
-checkAndStart();
 
 document.addEventListener('keydown', (e) => {
     switch (e.key) {
@@ -187,6 +303,11 @@ document.addEventListener('keydown', (e) => {
         case 'D':
             keys.right = true;
             e.preventDefault();
+            break;
+        case 'c':
+        case 'C':
+            debugCollision = !debugCollision;
+            console.log('Collision debug:', debugCollision ? 'ON' : 'OFF');
             break;
     }
 });

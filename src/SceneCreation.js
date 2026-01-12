@@ -1,6 +1,8 @@
 const canvas = document.getElementById('canvas1');
 export const ctx = canvas.getContext('2d');
 
+export const tileSize = 32;
+
 const spriteSheet = new Image();
 spriteSheet.src = 'assets/professional_kitchen.png';
 
@@ -12,7 +14,6 @@ const sprites = {
 export let kitchenSpriteLoaded = false;
 
 export function drawFloor(){
-    const tileSize = 32;
     const cols = Math.floor(canvas.width / tileSize);
     const rows = Math.floor(canvas.height / tileSize);
 
