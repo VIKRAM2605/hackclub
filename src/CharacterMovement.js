@@ -1,61 +1,217 @@
-import { drawFloor } from "./SceneCreation.js";
+import { renderObject } from "./ObjectCoordinates.js";
+import { drawFloor, kitchenSpriteLoaded } from "./SceneCreation.js";
 
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
 
-canvas.width = 500;
-canvas.height = 500;
+canvas.width = 480;
+canvas.height = 577;
+
+let playerSpriteLoaded = false;
+
 
 let player = {
-    col:1,
-    row:6,
-    spriteName:'player',
-    speed:64
+    x: 64,
+    y: 192,
+    width: 20,
+    height: 38,
+    spriteName: 'player',
+    speed: 0.3,
+    direction: 'right',
+    isMoving: false,
+    frameIndex: 0,
+    frameCounter: 0,
+    animationSpeed: 18,
 };
 
+const keys = {
+    up: false,
+    down: false,
+    left: false,
+    right: false
+};
+
+
 const sprites = {
-    player:{x:38,y:16,w:20,h:34},
+    player: {
+        idle: { x: 38, y: 16, w: 20, h: 34 },
+        walk: [
+            { x: 38, y: 16, w: 20, h: 34 },
+            { x: 38, y: 58, w: 20, h: 34 },
+            { x: 70, y: 56, w: 20, h: 34 },
+            { x: 104, y: 58, w: 20, h: 34 },
+            { x: 134, y: 58, w: 20, h: 34 },
+
+        ]
+    }
 };
 
 const spriteSheet = new Image();
-spriteSheet.src='assets/Chef A2.png'
 
-export function drawPlayer(){
-    const sprite =sprites[player.spriteName];
-    const tileSize = 64;
-    
-    // 2D position: x = col * tileSize, y = row * tileSize
-    const x = player.col * tileSize + (tileSize - sprite.w * 2) / 2;
-    const y = player.row * tileSize + (tileSize - sprite.h * 2) / 2;
+spriteSheet.src = 'assets/Chef A2.png';
 
-    ctx.drawImage(spriteSheet,
-        sprite.x,sprite.y,sprite.w,sprite.h,
-        x,y,sprite.w*2,sprite.h*2
-    )
+export function drawPlayer() {
+    const walkFrames = sprites.player.walk;
+    const currentFrame = player.isMoving
+        ? walkFrames[player.frameIndex]
+        : sprites.player.idle;
+
+    ctx.save();
+
+    ctx.translate(player.x, player.y);
+
+    if (player.direction === 'left') {
+        ctx.scale(-1, 1);  // Flip horizontally
+    }
+
+    ctx.drawImage(
+        spriteSheet,
+        currentFrame.x,
+        currentFrame.y,
+        currentFrame.w,
+        currentFrame.h,
+        -player.width / 2,   // Center on position
+        -player.height / 2,
+        player.width,
+        player.height
+    );
+
+    // Restore context
+    ctx.restore();
 }
 
-export function gameLoop(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    drawFloor()
+export function updatePlayer() {
+    let moveX = 0;
+    let moveY = 0;
+
+    if (keys.up) moveY -= 1;
+    if (keys.down) moveY += 1;
+    if (keys.left) moveX -= 1;
+    if (keys.right) moveX += 1;
+
+    player.isMoving = (moveX !== 0 || moveY !== 0);
+
+    if (player.isMoving) {
+        if (moveX !== 0 && moveY !== 0) {
+            moveX *= 0.707;
+            moveY *= 0.707;
+        }
+
+        const newX = player.x + (moveX * player.speed);
+        const newY = player.y + (moveY * player.speed);
+
+        if (isValidPosition(newX, newY)) {
+            player.x = newX;
+            player.y = newY;
+        }
+
+        if (moveX < 0) player.direction = 'left';
+        else if (moveX > 0) player.direction = 'right';
+        else if (moveY < 0) player.direction = 'up';
+        else if (moveY > 0) player.direction = 'down';
+
+
+        player.frameCounter++;
+
+        if (player.frameCounter >= player.animationSpeed) {
+            player.frameCounter = 0;
+            player.frameIndex = (player.frameIndex + 1) % 5;
+        }
+    }
+    else {
+        player.frameIndex = 0;
+        player.frameCounter = 0;
+    }
+}
+
+export function isValidPosition(x, y) {
+    const margin = 24;
+    const padding = 0;
+
+    if (x - padding < margin) return false;  // Left wall
+    if (x + padding > canvas.width - margin) return false;  // Right wall
+    if (y - padding < margin) return false;  // Top wall
+    if (y + padding > canvas.height - margin) return false;  // Bottom wall
+
+    return true;
+}
+
+export function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    updatePlayer();
+    drawFloor();
+    renderObject();
     drawPlayer();
     requestAnimationFrame(gameLoop);
 }
 
-spriteSheet.onload=()=>{
-    console.log('player loaded');
-    gameLoop();
+spriteSheet.onload = () => {
+    console.log('Player sprite loaded!');
+    playerSpriteLoaded = true;
+    checkAndStart();
 }
 
-document.addEventListener('keydown',(e)=>{
-    console.log(e);
-    switch(e.key){
-        case 'ArrowLeft':  player.col = Math.max(0, player.col - 1); break;
-        case 'ArrowRight': player.col = Math.min(7, player.col + 1); break;
-        case 'ArrowUp':    player.row = Math.max(0, player.row - 1); break;
-        case 'ArrowDown':  player.row = Math.min(7, player.row + 1); break;
-        case 'a':  player.col = Math.max(0, player.col - 1); break;
-        case 'd': player.col = Math.min(7, player.col + 1); break;
-        case 'w':    player.row = Math.max(0, player.row - 1); break;
-        case 's':  player.row = Math.min(7, player.row + 1); break;
+function checkAndStart() {
+    if (playerSpriteLoaded && kitchenSpriteLoaded) {
+        console.log('Starting game loop! ');
+        gameLoop();
+    } else {
+        setTimeout(checkAndStart, 100);
     }
-})
+}
+
+checkAndStart();
+
+document.addEventListener('keydown', (e) => {
+    switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+            keys.up = true;
+            e.preventDefault();
+            break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+            keys.down = true;
+            e.preventDefault();
+            break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+            keys.left = true;
+            e.preventDefault();
+            break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+            keys.right = true;
+            e.preventDefault();
+            break;
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+            keys.up = false;
+            break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+            keys.down = false;
+            break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+            keys.left = false;
+            break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+            keys.right = false;
+            break;
+    }
+});
