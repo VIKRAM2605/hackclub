@@ -4,8 +4,15 @@ import { drawFloor, kitchenSpriteLoaded, tileSize } from "./SceneCreation.js";
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
 
+// Ensure canvas width/height attributes match CSS size for sharp rendering
+canvas.width = canvas.offsetWidth;
+canvas.height = canvas.offsetHeight;
+
+ctx.imageSmoothingEnabled = false;
+
+
 canvas.width = 480;
-canvas.height = 577;
+canvas.height = 292;
 
 let playerSpriteLoaded = false;
 
@@ -122,11 +129,14 @@ export function drawPlayer() {
         : sprites.player.idle;
 
     ctx.save();
-    ctx.translate(player.x, player.y);
+    ctx.translate(Math.round(player.x), Math.round(player.y));
 
     if (player.direction === 'left') {
         ctx.scale(-1, 1);
     }
+
+    // Set imageSmoothingEnabled to false before drawing (in case it was changed elsewhere)
+    ctx.imageSmoothingEnabled = false;
 
     ctx.drawImage(
         spriteSheet,
@@ -134,8 +144,8 @@ export function drawPlayer() {
         currentFrame.y,
         currentFrame.w,
         currentFrame.h,
-        -player.width / 2,
-        -player.height / 2,
+        Math.round(-player.width / 2),
+        Math.round(-player.height / 2),
         player.width,
         player.height
     );
