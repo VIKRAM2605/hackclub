@@ -4,7 +4,11 @@ export const objectCoordinates = {
     // === BACK WALL (TOP) - COOKING LINE (COMPACT) ===
     grillLevel11: {
         col: 2, row: 0.1, collisionWidth: 31, collisionHeight: 44,
-        offsetX: 0, offsetY: 0
+        offsetX: 0, offsetY: 0,
+        interactable: true,
+        onInteract:({player,canvas,ctx})=>{
+            console.log("grill");
+        }
     },
     gasStove1: {
         col: 6.2, row: 0.2, collisionWidth: 29, collisionHeight: 40,

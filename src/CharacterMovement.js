@@ -33,7 +33,7 @@ let player = {
     animationSpeed: 18,
     collisionWidth: 12,
     collisionHeight: 16,
-    collisionOffsetY: 8 
+    collisionOffsetY: 8
 };
 
 const keys = {
@@ -81,18 +81,18 @@ function drawCollisionBoxes() {
         // Calculate base position (top-left of tile)
         const baseTileX = coords.col * tileSize;
         const baseTileY = coords.row * tileSize;
-        
+
         // Get collision dimensions
         const objWidth = coords.collisionWidth || tileSize;
         const objHeight = coords.collisionHeight || tileSize;
-        
+
         // Center the collision box within the tile (matching sprite centering)
         // Then apply any custom offsets
         const objX = baseTileX + (tileSize - objWidth) / 2 + (coords.offsetX || 0);
         const objY = baseTileY + (tileSize - objHeight) / 2 + (coords.offsetY || 0);
-        
+
         ctx.strokeRect(objX, objY, objWidth, objHeight);
-        
+
         // Label the object
         ctx.fillStyle = 'white';
         ctx.font = '10px Arial';
@@ -173,7 +173,7 @@ export function updatePlayer() {
 
         const stepX = moveX * player.speed;
         const stepY = moveY * player.speed;
-        
+
         const newX = player.x + stepX;
         const newY = player.y + stepY;
 
@@ -181,7 +181,7 @@ export function updatePlayer() {
         if (isValidPosition(newX, newY)) {
             player.x = newX;
             player.y = newY;
-        } 
+        }
         // If diagonal movement blocked, try sliding along obstacles
         else {
             // Try moving only horizontally (slide along vertical walls/objects)
@@ -201,7 +201,7 @@ export function updatePlayer() {
         else if (moveY > 0) player.direction = 'down';
 
         player.frameCounter++;
-        
+
         if (player.frameCounter >= player.animationSpeed) {
             player.frameCounter = 0;
             player.frameIndex = (player.frameIndex + 1) % 5;
@@ -231,16 +231,16 @@ export function isValidPosition(x, y) {
         // Calculate base position top-left of tile
         const baseTileX = coords.col * tileSize;
         const baseTileY = coords.row * tileSize;
-        
+
         // Get collision dimensions
         const objWidth = coords.collisionWidth || tileSize;
         const objHeight = coords.collisionHeight || tileSize;
-        
+
         // Center the collision box within the tile
         // Then apply any custom offsets
         const objX = baseTileX + (tileSize - objWidth) / 2 + (coords.offsetX || 0);
         const objY = baseTileY + (tileSize - objHeight) / 2 + (coords.offsetY || 0);
-        
+
         const objBox = {
             left: objX,
             right: objX + objWidth,
@@ -261,7 +261,124 @@ export function isValidPosition(x, y) {
 
     return true;
 }
+export function getNearByInteractables(x, y, maxDistance = 12) {
 
+    const playerBox = getPlayerCollisionBox(x, y);
+
+    for (const [objectName, coords] of Object.entries(objectCoordinates)) {
+        if (!coords.interactable) continue;
+
+        const baseTileX = coords.col * tileSize;
+        const baseTileY = coords.row * tileSize;
+        const objWidth = coords.collisionWidth || tileSize;
+        const objHeight = coords.collisionHeight || tileSize;
+        const objX = baseTileX + (tileSize - objWidth) / 2 + (coords.offsetX || 0);
+        const objY = baseTileY + (tileSize - objHeight) / 2 + (coords.offsetY || 0);
+
+        const objBox = {
+            left: objX,
+            right: objX + objWidth,
+            top: objY,
+            bottom: objY + objHeight
+        };
+
+        const overlap = (
+            playerBox.right > objBox.left &&
+            playerBox.left < objBox.right &&
+            playerBox.bottom > objBox.top &&
+            playerBox.top < objBox.bottom
+        );
+        if (overlap) return { name: objectName, coords };
+
+        //proximity disatnce calculation
+        const px = Math.max(objBox.left, Math.min(x, objBox.right));
+        const py = Math.max(objBox.top, Math.min(y, objBox.bottom));
+        const distSq = (px - x) * (px - x) + (py - y) * (py - y);
+        if (distSq <= maxDistance * maxDistance) return { name: objectName, coords };
+    }
+    return null;
+};
+
+export function interactWithObject(objEntry) {
+    if (!objEntry) return;
+    const { name, coords } = objEntry;
+
+    if (typeof coords.onInteract === 'function') {
+        coords.onInteract({ player, canvas, ctx });
+        return;
+    }
+
+    console.log(`Interacted with ${name}`);
+    showMessage(`Interacted with ${name}`, 2000);
+};
+
+export function showMessage(text, duration = 1500) {
+    let el = document.getElementById('interaction-message');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'interaction-message';
+        Object.assign(el.style, {
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            bottom: '24px',
+            padding: '6px 10px',
+            background: 'rgba(0,0,0,0.7)',
+            color: 'white',
+            borderRadius: '4px',
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '14px',
+            pointerEvents: 'none',
+            zIndex: 9999
+        });
+        document.body.appendChild(el);
+    }
+
+    el.textContent = text;
+    el.style.opacity = '1';
+
+    setTimeout(() => {
+        el.style.transition = 'opacity 300ms';
+        el.style.opacity = '0';
+    }, duration - 250);
+}
+function showInteractButton(text = 'Press E') {
+    let el = document.getElementById('interact-text');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'interact-text';
+        Object.assign(el.style, {
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            bottom: '60px',
+            padding: '6px 10px',
+            background: 'rgba(0,0,0,0.8)',
+            color: 'white',
+            borderRadius: '6px',
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '14px',
+            pointerEvents: 'none',
+            zIndex: 10000,
+            transition: 'opacity 120ms',
+            opacity: '0',
+            display: 'none'
+        });
+        document.body.appendChild(el);
+    }
+    el.textContent = text;
+    el.style.display = 'block';
+    requestAnimationFrame(() => el.style.opacity = '1');
+}
+
+function hideInteractButton() {
+    const el = document.getElementById('interact-text');
+    if (!el) return;
+    el.style.opacity = '0';
+    setTimeout(() => {
+        if (el) el.style.display = 'none';
+    }, 140);
+}
 export function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     updatePlayer();
@@ -269,6 +386,14 @@ export function gameLoop() {
     renderObject();
     drawPlayer();
     drawCollisionBoxes();
+
+    const nearby = getNearByInteractables(player.x, player.y);
+    if (nearby) {
+        showInteractButton('Press E');
+    } else {
+        hideInteractButton();
+    }
+
     requestAnimationFrame(gameLoop);
 }
 
@@ -318,6 +443,13 @@ document.addEventListener('keydown', (e) => {
         case 'C':
             debugCollision = !debugCollision;
             console.log('Collision debug:', debugCollision ? 'ON' : 'OFF');
+            break;
+        case 'e':
+        case 'E':
+            const obj = getNearByInteractables(player.x, player.y);
+            if (obj) interactWithObject(obj);
+            else showMessage('Nothing to interact with', 900);
+            e.preventDefault();
             break;
     }
 });
