@@ -1,15 +1,22 @@
+import { grillTemplate } from "./InteractiveModals.js";
 import { drawDoor, drawSprite } from "./SceneCreation.js";
+import { createModal } from "./StateManagement.js";
 
 export const objectCoordinates = {
-    // === BACK WALL (TOP) - COOKING LINE (COMPACT) ===
     grillLevel11: {
         col: 2, row: 0.1, collisionWidth: 31, collisionHeight: 44,
         offsetX: 0, offsetY: 0,
         interactable: true,
-        onInteract:({player,canvas,ctx})=>{
-            console.log("grill");
+        onInteract: {
+            template:grillTemplate,
+            onOpen:(canvas,ctx,player)=>{
+                console.log("function call=>",canvas,ctx,player);
+                //modalManager.openModal("grill", grillTemplate, canvas, ctx, player);
+                createModal('grillLevel1',grillTemplate, canvas, ctx, player);
+            },
         }
     },
+
     gasStove1: {
         col: 6.2, row: 0.2, collisionWidth: 29, collisionHeight: 40,
         offsetX: 0, offsetY: 0
@@ -132,21 +139,20 @@ export const objectCoordinates = {
     },
 
 };
+
 export const doorObjectCoordinates = {
     openDoorType11: {
         col: 4.7, row: 0.7, collisionWidth: 14, collisionHeight: 13,
         offsetX: 8, offsetY: 0
     }
-}
+};
+
 export function renderObject() {
     Object.entries(objectCoordinates).forEach(([key, value]) => {
         drawSprite(key, value.col, value.row);
     });
-    // Object.entries(doorObjectCoordinates).forEach(([key, value]) => {
-    //     drawDoor(key, value.col, value.row);
-    // });
 }
 
 export function updateRenderObjectCoordinates() {
-
+    // placeholder for future updates
 }

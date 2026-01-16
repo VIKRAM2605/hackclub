@@ -14,7 +14,7 @@ spriteSheet.src = 'assets/professional_kitchen_withshadows.png';
 const doorSpriteSheet=new Image();
 doorSpriteSheet.src='assets/professional_kitchen_room_door_tiles.png';
 
-const sprites = {
+export const sprites = {
     unCookedHotDog: { x: 85, y: 3, w: 6, h: 11, sw: 6, sh: 11 },
     cookedHotDog: { x: 85, y: 18, w: 6, h: 11, sw: 6, sh: 11 },
     eggCatoonHorizontal: { x: 209, y: 34, w: 14, h: 13, sw: 14, sh: 13 },

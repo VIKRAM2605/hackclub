@@ -124,8 +124,9 @@ function getPlayerCollisionBox(x, y) {
 
 export function drawPlayer() {
     const walkFrames = sprites.player.walk;
+    const frameCount = walkFrames.length;
     const currentFrame = player.isMoving
-        ? walkFrames[player.frameIndex]
+        ? walkFrames[player.frameIndex % frameCount]
         : sprites.player.idle;
 
     ctx.save();
@@ -202,9 +203,11 @@ export function updatePlayer() {
 
         player.frameCounter++;
 
+        const walkFrames = sprites.player.walk;
+        const frameCount = walkFrames.length || 1;
         if (player.frameCounter >= player.animationSpeed) {
             player.frameCounter = 0;
-            player.frameIndex = (player.frameIndex + 1) % 5;
+            player.frameIndex = (player.frameIndex + 1) % frameCount;
         }
     }
     else {
@@ -299,49 +302,7 @@ export function getNearByInteractables(x, y, maxDistance = 12) {
     return null;
 };
 
-export function interactWithObject(objEntry) {
-    if (!objEntry) return;
-    const { name, coords } = objEntry;
 
-    if (typeof coords.onInteract === 'function') {
-        coords.onInteract({ player, canvas, ctx });
-        return;
-    }
-
-    console.log(`Interacted with ${name}`);
-    showMessage(`Interacted with ${name}`, 2000);
-};
-
-export function showMessage(text, duration = 1500) {
-    let el = document.getElementById('interaction-message');
-    if (!el) {
-        el = document.createElement('div');
-        el.id = 'interaction-message';
-        Object.assign(el.style, {
-            position: 'absolute',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            bottom: '24px',
-            padding: '6px 10px',
-            background: 'rgba(0,0,0,0.7)',
-            color: 'white',
-            borderRadius: '4px',
-            fontFamily: 'Arial, sans-serif',
-            fontSize: '14px',
-            pointerEvents: 'none',
-            zIndex: 9999
-        });
-        document.body.appendChild(el);
-    }
-
-    el.textContent = text;
-    el.style.opacity = '1';
-
-    setTimeout(() => {
-        el.style.transition = 'opacity 300ms';
-        el.style.opacity = '0';
-    }, duration - 250);
-}
 function showInteractButton(text = 'Press E') {
     let el = document.getElementById('interact-text');
     if (!el) {
@@ -448,7 +409,6 @@ document.addEventListener('keydown', (e) => {
         case 'E':
             const obj = getNearByInteractables(player.x, player.y);
             if (obj) interactWithObject(obj);
-            else showMessage('Nothing to interact with', 900);
             e.preventDefault();
             break;
     }
@@ -478,3 +438,15 @@ document.addEventListener('keyup', (e) => {
             break;
     }
 });
+
+
+export function interactWithObject(obj){
+    if(!obj)return;
+    console.log(obj);
+    const {template,onOpen}=obj.coords.onInteract;
+    console.log(template,onOpen);
+
+    if(typeof onOpen==="function"){
+        onOpen(canvas,ctx,player)
+    }
+};
