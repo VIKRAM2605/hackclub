@@ -12,7 +12,7 @@ export const objectCoordinates = {
             onOpen:(canvas,ctx,player)=>{
                 console.log("function call=>",canvas,ctx,player);
                 //modalManager.openModal("grill", grillTemplate, canvas, ctx, player);
-                createModal('grillLevel1',grillTemplate, canvas, ctx, player);
+                createModal('grillLevel1',grillTemplate, canvas, ctx, player,1);
             },
         }
     },
@@ -154,5 +154,4 @@ export function renderObject() {
 }
 
 export function updateRenderObjectCoordinates() {
-    // placeholder for future updates
 }

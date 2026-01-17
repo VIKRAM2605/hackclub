@@ -1,7 +1,6 @@
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
 
-// Ensure canvas width/height attributes match CSS size for sharp rendering
 canvas.width = canvas.offsetWidth;
 canvas.height = canvas.offsetHeight;
 
