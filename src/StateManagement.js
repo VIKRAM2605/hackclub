@@ -212,6 +212,35 @@ export function redrawSlot(slotId, objectId, slotCanvas) {
     const slotData = State[objectId][slotId];
     const ctx = slotCanvas.getContext('2d');
 
+    slotCanvas.onclick = () => {
+        const status = State[objectId][slotId].status;
+        console.log(status);
+        if (status === 'cooked') {
+            console.log('picked up cooked food');
+
+
+            const newCount = updateCookedFoodCount(slotData.spriteName);
+            console.log('cookedPatty count:', newCount);
+
+            if (slotData.animationId) cancelAnimationFrame(slotData.animationId);
+            ctx.clearRect(0, 0, slotCanvas.width, slotCanvas.height);
+            slotData.status = "empty";
+            slotData.spriteName = null;
+            slotData.startTime = null;
+
+        } else if (status === 'cooking') {
+            console.log('removed uncooked food');
+
+            if (slotData.animationId) cancelAnimationFrame(slotData.animationId);
+
+            ctx.clearRect(0, 0, slotCanvas.width, slotCanvas.height);
+            slotData.status = "empty";
+            slotData.spriteName = null;
+            slotData.startTime = null;
+        }
+    };
+
+
     if (slotData.status === 'cooking' && slotData.startTime) {
 
         const now = performance.now();
