@@ -10,8 +10,8 @@ export const tileSize = 32;
 const spriteSheet = new Image();
 spriteSheet.src = 'assets/professional_kitchen_withshadows.png';
 
-const doorSpriteSheet=new Image();
-doorSpriteSheet.src='assets/professional_kitchen_room_door_tiles.png';
+const doorSpriteSheet = new Image();
+doorSpriteSheet.src = 'assets/professional_kitchen_room_door_tiles.png';
 
 export const sprites = {
     unCookedHotDog: { x: 85, y: 3, w: 6, h: 11, sw: 6, sh: 11 },
@@ -32,13 +32,13 @@ export const sprites = {
 };
 
 const doorSprite = {
-    openDoorType1:{ x: 208, y: 292, w: 320, h: 69, sw: 320, sh: 69 },
+    openDoorType1: { x: 208, y: 292, w: 320, h: 69, sw: 320, sh: 69 },
 };
 
 
 export let kitchenSpriteLoaded = false;
 
-export function drawDoor(spriteName,col,row){
+export function drawDoor(spriteName, col, row) {
     const sprite = doorSprite[spriteName.slice(0, -1)];
     const tileSize = 32;
     const x = Math.round(col * tileSize + (tileSize - sprite.w) / 2);
@@ -144,3 +144,4 @@ spriteSheet.onload = () => {
     console.log('Kitchen sprites loaded! ');
     kitchenSpriteLoaded = true;
 }
+

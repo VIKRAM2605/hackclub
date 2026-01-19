@@ -1,6 +1,6 @@
 import { objectCoordinates, renderObject } from "./ObjectCoordinates.js";
 import { drawFloor, kitchenSpriteLoaded, tileSize } from "./SceneCreation.js";
-import { drawQueue, shouldSpawnNpc, spawnNpc, updateNpcQueue } from "./NpcStateManagement.js";
+import { decreasePatienceTime, decreaseSpawnDelayTime, drawQueue, isFirstNpcIntaractable, shouldSpawnNpc, spawnNpc, updateNpcQueue } from "./NpcStateManagement.js";
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
 
@@ -114,7 +114,7 @@ function drawCollisionBoxes() {
     );
 }
 
-function getPlayerCollisionBox(x, y) {
+export function getPlayerCollisionBox(x, y) {
     return {
         left: x - player.collisionWidth / 2,
         right: x + player.collisionWidth / 2,
@@ -305,6 +305,7 @@ export function getNearByInteractables(x, y, maxDistance = 12) {
 
 
 function showInteractButton(text = 'Press E') {
+    //console.log(text);
     let el = document.getElementById('interact-text');
     if (!el) {
         el = document.createElement('div');
@@ -328,6 +329,10 @@ function showInteractButton(text = 'Press E') {
         });
         document.body.appendChild(el);
     }
+    if (el._hideTimeout) {
+        clearTimeout(el._hideTimeout);
+        el._hideTimeout = null;
+    }
     el.textContent = text;
     el.style.display = 'block';
     requestAnimationFrame(() => el.style.opacity = '1');
@@ -337,8 +342,10 @@ function hideInteractButton() {
     const el = document.getElementById('interact-text');
     if (!el) return;
     el.style.opacity = '0';
-    setTimeout(() => {
+    if (el._hideTimeout) clearTimeout(el._hideTimeout);
+    el._hideTimeout = setTimeout(() => {
         if (el) el.style.display = 'none';
+        el._hideTimeout = null;
     }, 140);
 }
 export function gameLoop(currentTime) {
@@ -354,13 +361,17 @@ export function gameLoop(currentTime) {
     if (shouldSpawnNpc(currentTime)) {
         spawnNpc(currentTime);
     }
-    
+
     updateNpcQueue(deltaTime);
     drawQueue(ctx);
 
     const nearby = getNearByInteractables(player.x, player.y);
+    const nearbyNpc = isFirstNpcIntaractable(player.x, player.y);
+
     if (nearby) {
         showInteractButton('Press E');
+    } else if (nearbyNpc) {
+        showInteractButton('Press F');
     } else {
         hideInteractButton();
     }
@@ -450,13 +461,13 @@ document.addEventListener('keyup', (e) => {
 });
 
 
-export function interactWithObject(obj){
-    if(!obj)return;
+export function interactWithObject(obj) {
+    if (!obj) return;
     console.log(obj);
-    const {template,onOpen}=obj.coords.onInteract;
-    console.log(template,onOpen);
+    const { template, onOpen } = obj.coords.onInteract;
+    console.log(template, onOpen);
 
-    if(typeof onOpen==="function"){
-        onOpen(canvas,ctx,player)
+    if (typeof onOpen === "function") {
+        onOpen(canvas, ctx, player)
     }
 };
