@@ -131,7 +131,7 @@ export function drawSprite(spriteName, col = 0, row = 0) {
     const x = Math.round(col * tileSize + (tileSize - sprite.w) / 2);
     const y = Math.round(row * tileSize + (tileSize - sprite.h) / 2);
 
-    ctx.imageSmoothingEnabled = false;
+    //ctx.imageSmoothingEnabled = false;
 
     ctx.drawImage(
         spriteSheet,

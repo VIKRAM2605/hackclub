@@ -33,39 +33,47 @@ export function spawnNpc(currentTime) {
 export function updateNpcQueue(deltaTime) {
     if (npcQueue.length === 0) return;
 
-    if (npcQueue[0]) {
-        npcQueue[0].patience -= deltaTime / 1000;
 
-        if (npcQueue[0].patience < 0) {
-            console.log(`${npcQueue[0].order} left angry!`);
-            npcQueue.shift();
-            queuePointer--;
-            deductHealth();
-            return;
-        }
-    }
+    // if (npcQueue.length > 0) {
+    //     // const orderingCustomer = npcQueue[0];
+    //     // orderingCustomer.positionX = 400;
+    //     // orderingCustomer.positionY = npcQueuePosition[0];
 
-    if (npcQueue.length > 0) {
-        const orderingCustomer = npcQueue[0];
-        orderingCustomer.positionX = 400;
-        orderingCustomer.positionY = npcQueuePosition[0];
-
-        if (cookedFoodCount[orderingCustomer.order] > 0) {
-            cookedFoodCount[orderingCustomer.order]--;
-            npcQueue.shift();
-            queuePointer--;
-            console.log(`Served! Queue length: ${npcQueue.length}`);
-        }
-    }
-    for (let i = 1; i < npcQueue.length; i++) {
+    //     // if (cookedFoodCount[orderingCustomer.order] > 0) {
+    //     //     cookedFoodCount[orderingCustomer.order]--;
+    //     //     npcQueue.shift();
+    //     //     queuePointer--;
+    //     //     console.log(`Served! Queue length: ${npcQueue.length}`);
+    //     // }
+    // }
+    for (let i = 0; i < npcQueue.length; i++) {
         const targetX = 500 - (2 * 50);
         const targetY = npcQueuePosition[i];
+
         //stop close to the target
         if (Math.abs(npcQueue[i].positionX - targetX) < 5) {
             npcQueue[i].positionX = targetX;
-        } else {
+        } else{
             //move to the target place
             npcQueue[i].positionX += 40 * (deltaTime / 1000);
+        }
+        if (i === 0 && Math.abs(npcQueue[0].positionX - targetX) < 5) {
+            npcQueue[0].patience -= deltaTime / 1000;
+            if (npcQueue[0].patience < 0) {
+                console.log(`${npcQueue[0].order} left angry!`);
+                npcQueue.shift();
+                deductHealth();
+                queuePointer = npcQueue.length;
+                return;
+            }
+            if (cookedFoodCount[npcQueue[0].order] > 0) {
+                cookedFoodCount[npcQueue[0].order]--;
+                npcQueue.shift();
+                console.log(`Served! Queue length: ${npcQueue.length}`);
+                queuePointer = npcQueue.length;
+                showHealth()
+                return; 
+            }
         }
 
         npcQueue[i].positionY = targetY;
@@ -104,7 +112,7 @@ export function drawQueue(ctx) {
     }
 
     ctx.fillStyle = 'rgba(0,0,0,0.8)';
-    ctx.fillRect(10, 10, 120, 25);
+    ctx.fillRect(10, 10, 100, 25);
     ctx.fillStyle = 'white';
     ctx.font = 'bold 14px Arial';
     ctx.textAlign = 'left';

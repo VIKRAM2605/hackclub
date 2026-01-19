@@ -8,7 +8,7 @@ const ctx = canvas.getContext('2d');
 canvas.width = canvas.offsetWidth;
 canvas.height = canvas.offsetHeight;
 
-ctx.imageSmoothingEnabled = false;
+//ctx.imageSmoothingEnabled = false;
 
 
 canvas.width = 480;
