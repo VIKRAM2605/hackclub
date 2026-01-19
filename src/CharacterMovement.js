@@ -1,6 +1,6 @@
 import { objectCoordinates, renderObject } from "./ObjectCoordinates.js";
 import { drawFloor, kitchenSpriteLoaded, tileSize } from "./SceneCreation.js";
-
+import { drawQueue, shouldSpawnNpc, spawnNpc, updateNpcQueue } from "./NpcStateManagement.js";
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
 
@@ -15,6 +15,7 @@ canvas.width = 480;
 canvas.height = 292;
 
 let playerSpriteLoaded = false;
+let lastTime = performance.now();
 
 // Toggle this to see collision boxes (press 'C' key)
 let debugCollision = false;
@@ -340,13 +341,22 @@ function hideInteractButton() {
         if (el) el.style.display = 'none';
     }, 140);
 }
-export function gameLoop() {
+export function gameLoop(currentTime) {
+    const deltaTime = currentTime - lastTime;
+    lastTime = currentTime
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     updatePlayer();
     drawFloor();
     renderObject();
     drawPlayer();
     drawCollisionBoxes();
+
+    if (shouldSpawnNpc(currentTime)) {
+        spawnNpc(currentTime);
+    }
+    
+    updateNpcQueue(deltaTime);
+    drawQueue(ctx);
 
     const nearby = getNearByInteractables(player.x, player.y);
     if (nearby) {
