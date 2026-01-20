@@ -1,3 +1,4 @@
+import { startTimer } from "./TimeCalculation.js";
 
 export function initRetryPage() {
     retryPage();
@@ -10,6 +11,8 @@ export function retryPage() {
         retryPage.id = "retry-main";
         retryPage.innerHTML = `
                 <div>
+                    <h2>Game Over</h2>
+                    <p>Time Survived: <span id="time-display">00:00</span></p>
                     <button id="retry-btn">
                        Retry
                     </button>
@@ -32,7 +35,17 @@ export function hideRetryPage() {
 
 export function showRetryPage() {
     const retryPage = document.getElementById('retry-main');
+    const timeDisplay = document.getElementById('time-display');
+
+    if(retryPage){
+        const finalTime = startTimer();
+
+        timeDisplay.innerText = finalTime;
+        console.log(finalTime);
+    }
     retryPage.style.display = 'block';
+
+     
 }
 
 initRetryPage();

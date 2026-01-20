@@ -2,6 +2,7 @@ import { objectCoordinates, renderObject } from "./ObjectCoordinates.js";
 import { drawFloor, kitchenSpriteLoaded, tileSize } from "./SceneCreation.js";
 import { decreasePatienceTime, decreaseSpawnDelayTime, drawQueue, isFirstNpcIntaractable, openNpcModal, shouldSpawnNpc, spawnNpc, updateNpcQueue } from "./NpcStateManagement.js";
 import { npcConvoTemplate } from "./InteractiveModals.js";
+import { startTimer } from "./TimeCalculation.js";
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
 
@@ -390,6 +391,7 @@ function checkAndStart() {
     if (playerSpriteLoaded && kitchenSpriteLoaded) {
         console.log('Starting game loop!');
         console.log('Press C to toggle collision debug view');
+        startTimer();
         gameLoop();
     } else {
         setTimeout(checkAndStart, 100);
