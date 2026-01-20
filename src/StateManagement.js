@@ -1,4 +1,5 @@
 import { sprites } from "./SceneCreation.js";
+import { getBalance } from "./wallet.js";
 
 export const State = {
 
@@ -29,8 +30,18 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
     const ctxMainSprite = canvasMainSprite.getContext('2d');
 
     drawSpriteOnModal(templateName, canvasMainSprite, ctxMainSprite);
+    if(templateName == 'shop'){
+        const moneyDisplay = document.getElementById('display-money');
+        const grillSlotDisplay = document.getElementById('grill-current-slots');
+        const btnBuyGrill = document.getElementById('btn-buy-grill');
 
-    if (templateName == 'grillLevel1') {
+        const updateshopUi=()=>{
+            moneyDisplay.innerText = getBalance().toFixed(2);
+            
+        }
+
+    }
+    else if (templateName == 'grillLevel1') {
         const canvasCookedSprite = document.getElementById('cooked-canvas-sprite');
 
         // canvasCookedSprite.dataset.id=objectId;

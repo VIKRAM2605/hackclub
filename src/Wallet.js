@@ -1,34 +1,50 @@
-export function currentBalance(balance = 0) {
+let currentMoney = 0;
+
+export function initWallet(startAmount = 0) {
+    currentMoney = startAmount;
+    currentBalance();
+}
+
+export function getBalance() {
+    return currentMoney;
+}
+
+export function currentBalance() {
     let wallet = document.getElementById('walletBalance');
     if (!wallet) {
         const wallet = document.createElement('div');
         wallet.className = 'wallet';
         wallet.id = 'walletBalance'
-        wallet.textContent = `$${balance.toFixed(2)}`;
+        wallet.textContent = `$${currentMoney.toFixed(2)}`;
         document.body.appendChild(wallet);
-    }else{
-        wallet.textContent=`$${balance.toFixed(2)}`;
+    } else {
+        wallet.textContent = `$${currentMoney.toFixed(2)}`;
     }
 
 }
 
-export function addBalance(amount=2) {
-    const wallet = document.getElementById('walletBalance');
-    const balanceFloat = parseFloat(wallet.textContent.replace('$', ""));
-    const formattedBalanceFloat = balanceFloat + amount;
-    console.log(formattedBalanceFloat);
-    currentBalance(formattedBalanceFloat)
+export function addBalance(amount = 2) {
+    currentMoney += amount;
+    currentBalance();
 }
 
-currentBalance();
-addBalance()
-
-export function displayBalance(){
-    const wallet = document.getElementById('walletBalance');
-    wallet.style.display='block'
+export function deductBalance(amount) {
+    if (currentMoney >= amount) {
+        currentMoney -= amount;
+        currentBalance();
+        return true;
+    }
+    return false;
 }
 
-export function hideBalance(){
+export function displayBalance() {
     const wallet = document.getElementById('walletBalance');
-    wallet.style.display='none'
+    wallet.style.display = 'block'
 }
+
+export function hideBalance() {
+    const wallet = document.getElementById('walletBalance');
+    wallet.style.display = 'none'
+}
+
+initWallet(500);
