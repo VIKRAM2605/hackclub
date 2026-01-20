@@ -1,8 +1,8 @@
-import { objectCoordinates } from "./ObjectCoordinates";
-import { getBalance, deductBalance } from "./wallet";
+import { objectCoordinates } from "./ObjectCoordinates.js";
+import { getBalance, deductBalance } from "./wallet.js";
 
 export const upgrades = {
-    grill: {
+    grillLevel1: {
         2: 100,
         3: 400,
         4: 900,
@@ -18,7 +18,7 @@ export function getNextUpgradeForObject(objName) {
 
     if (nextLevel > maxSlots) return null;
 
-    return upgrades[objName][nextLevel];
+    return upgrades[objName.slice(0,-1)][nextLevel];
 }
 
 export function attemptUpgrade(objName) {

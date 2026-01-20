@@ -1,5 +1,5 @@
-import { grillTemplate } from "./InteractiveModals.js";
-import { drawDoor, drawSprite } from "./SceneCreation.js";
+import { grillTemplate, shopTemplate } from "./InteractiveModals.js";
+import { drawSprite } from "./SceneCreation.js";
 import { createModal } from "./StateManagement.js";
 
 export const objectCoordinates = {
@@ -12,7 +12,7 @@ export const objectCoordinates = {
             template:grillTemplate,
             onOpen:(canvas,ctx,player,unlockedSlots)=>{
                 console.log("function call=>",canvas,ctx,player,unlockedSlots);
-                createModal('grillLevel1',grillTemplate, canvas, ctx, player,1,unlockedSlots);
+                createModal('shop',shopTemplate, canvas, ctx, player,1,unlockedSlots);
             },
         }
     },

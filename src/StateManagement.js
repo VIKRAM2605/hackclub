@@ -1,4 +1,6 @@
+import { objectCoordinates } from "./ObjectCoordinates.js";
 import { sprites } from "./SceneCreation.js";
+import { attemptUpgrade, getNextUpgradeForObject, upgrades } from "./ShopStateManagement.js";
 import { getBalance } from "./wallet.js";
 
 export const State = {
@@ -20,25 +22,67 @@ spriteSheet.src = "assets/professional_kitchen_withshadows.png";
 //creating the modal with the template
 export function createModal(templateName, template, canvas, ctx, player, objectId, unlockedSlots) {
     //console.log(template);
-
+    if (document.getElementById("main-modal")) {
+        return;
+    }
     const modal = document.createElement('div');
     modal.id = "main-modal";
     modal.innerHTML = template;
     //console.log(modal);
     document.getElementById('game-container').appendChild(modal);
     const canvasMainSprite = document.getElementById('canvas-sprite');
-    const ctxMainSprite = canvasMainSprite.getContext('2d');
+    if (canvasMainSprite) {
+        const ctxMainSprite = canvasMainSprite.getContext('2d');
+        drawSpriteOnModal(templateName, canvasMainSprite, ctxMainSprite);
+    }
 
-    drawSpriteOnModal(templateName, canvasMainSprite, ctxMainSprite);
-    if(templateName == 'shop'){
+    if (templateName == 'shop') {
         const moneyDisplay = document.getElementById('display-money');
-        const grillSlotDisplay = document.getElementById('grill-current-slots');
-        const btnBuyGrill = document.getElementById('btn-buy-grill');
 
-        const updateshopUi=()=>{
+        const shopContainer = document.getElementById('shop-items-container');
+
+        const updateshopUi = () => {
             moneyDisplay.innerText = getBalance().toFixed(2);
-            
+            shopContainer.innerHTML = '';
+            for (let objName in objectCoordinates) {
+                const obj = objectCoordinates[objName];
+                //console.log(objName, obj);
+                if (obj.unlockedSlots && obj.unlockedSlots < 4) {
+                    const nextLevel = obj.unlockedSlots + 1;
+                    const cost = getNextUpgradeForObject(objName);
+                    const slotCard = document.createElement("div");
+                    slotCard.id = objName;
+                    slotCard.className = "shop-card";
+                    slotCard.style.cssText = "border: 1px solid #555; margin: 10px; padding: 10px; background: #333; display: flex; justify-content: space-between; align-items: center;";
+                    slotCard.innerHTML = `
+                        <div>
+                            <h3 style="margin:0; color:#fff">${objName.replace(/([A-Z])/g, ' $1').trim()}</h3>
+                            <p style="margin:5px 0; color:#aaa">Level: ${obj.unlockedSlots} → ${nextLevel}</p>
+                            <p style="margin:0; color:#4CAF50; font-weight:bold">Price: $${cost}</p>
+                        </div>
+                        <button id="buy-${objName}" class="buy-btn" style="padding: 8px 16px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px;"> 
+                            Buy 
+                        </button>
+                `
+                    shopContainer.appendChild(slotCard);
+                    const buyBtn = document.getElementById(`buy-${objName}`);
+                    buyBtn.onclick = () => {
+                        const result = attemptUpgrade(objName);
+                        if (result.success) {
+                            console.log("Upgraded!");
+                            updateshopUi();
+                        } else {
+                            console.log(result.msg);
+                            buyBtn.innerText = "No Cash";
+                            setTimeout(() => buyBtn.innerText = "Buy", 1000);
+                        }
+                    };
+                };
+
+
+            }
         }
+        updateshopUi();
 
     }
     else if (templateName == 'grillLevel1') {

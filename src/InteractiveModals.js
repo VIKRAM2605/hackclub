@@ -178,3 +178,76 @@ export const npcConvoTemplate = `
     </div>
 </div>
 `;
+
+export const shopTemplate = `
+<div id="shop-modal" style="
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    height: 500px;
+    background: #1e1e1e;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    border-radius: 12px;
+    border: 1px solid #333;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    overflow: hidden;
+">
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background: #252525;
+        border-bottom: 1px solid #333;
+    ">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Upgrade Store</h2>
+        <button id="close-modal" style="
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+        " onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#888'">
+            &times;
+        </button>
+    </div>
+
+    <div style="padding: 20px; flex-grow: 1; display: flex; flex-direction: column; gap: 15px;">
+        
+        <div style="
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        ">
+            <span style="color: #aaa; font-size: 14px; font-weight: bold;">TOTAL FUNDS</span>
+            <span style="font-size: 24px; font-weight: bold; color: #4CAF50;">
+                $ <span id="display-money">0.00</span>
+            </span>
+        </div>
+
+        <div style="height: 1px; background: #333; margin: 5px 0;"></div>
+
+        <div style="flex-grow: 1; overflow-y: auto;">
+            <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #666;">AVAILABLE EQUIPMENT</h3>
+            
+            <div id="shop-items-container" style="
+                display: flex; 
+                flex-direction: column; 
+                gap: 10px;
+            ">
+            </div>
+        </div>
+    </div>
+</div>
+`;
