@@ -17,13 +17,13 @@ const spriteSheet = new Image();
 spriteSheet.src = "assets/professional_kitchen_withshadows.png";
 
 //creating the modal with the template
-export function createModal(templateName, template, canvas, ctx, player, objectId) {
-    console.log(template);
+export function createModal(templateName, template, canvas, ctx, player, objectId, unlockedSlots) {
+    //console.log(template);
 
     const modal = document.createElement('div');
     modal.id = "main-modal";
     modal.innerHTML = template;
-    console.log(modal);
+    //console.log(modal);
     document.getElementById('game-container').appendChild(modal);
     const canvasMainSprite = document.getElementById('canvas-sprite');
     const ctxMainSprite = canvasMainSprite.getContext('2d');
@@ -40,12 +40,25 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
 
         drawSpriteOnModal('cookedPatty', canvasCookedSprite, ctxCookedSprite);
 
-        refillSlotsToPreviousState(objectId);
+        const slots = ['slot-1', 'slot-2', 'slot-3', 'slot-4'];
+        slots.forEach((slotId, index) => {
+            const slotCanvas = document.getElementById(slotId);
+            if (slotCanvas) {
+                if (index >= unlockedSlots) {
+                    drawLockedSlots(slotCanvas);
+                } else {
+                    slotCanvas.style.cursor = 'default';
+                }
+            }
+        })
+
+
+        refillSlotsToPreviousState(objectId, unlockedSlots);
         canvasCookedSprite.style.cursor = 'pointer';
 
         canvasCookedSprite.addEventListener('click', () => {
             console.log('clicked cooked patty');
-            addItemsToSlot('cookedPatty', objectId);
+            addItemsToSlot('cookedPatty', objectId, unlockedSlots);
         })
 
     }
@@ -78,14 +91,18 @@ export function drawSpriteOnModal(spriteName, canvas, ctx) {
 
 }
 
-export function addItemsToSlot(spriteName, objectId) {
+export function addItemsToSlot(spriteName, objectId, unlockedSlots) {
     const slots = ['slot-1', 'slot-2', 'slot-3', 'slot-4'];
     let targetSlot = null;
     let targetSlotId = null;
 
     State[objectId] ??= {};
 
-    for (let slotId of slots) {
+    for (let i = 0; i < slots.length; i++) {
+        if (i >= unlockedSlots) {
+            continue;
+        }
+        let slotId = slots[i];
         const slotCanvas = document.querySelector(`#${slotId}`);
         if (slotCanvas && (!State[objectId][slotId] || State[objectId][slotId].status === 'empty')) {
             targetSlot = slotCanvas;
@@ -197,10 +214,14 @@ export function updateCookedFoodCount(foodName) {
 }
 
 
-export function refillSlotsToPreviousState(objectId) {
+export function refillSlotsToPreviousState(objectId, unlockedSlots) {
     const slots = ['slot-1', 'slot-2', 'slot-3', 'slot-4'];
     State[objectId] ??= {};
-    for (let slotId of slots) {
+    for (let i = 0; i < slots.length; i++) {
+        if (i >= unlockedSlots) {
+            continue;
+        }
+        let slotId = slots[i];
         const slotCanvas = document.querySelector(`#${slotId}`);
         if (slotCanvas && State[objectId][slotId]) {
             redrawSlot(slotId, objectId, slotCanvas);
@@ -275,4 +296,21 @@ export function redrawSlot(slotId, objectId, slotCanvas) {
 
         slotCanvas.style.borderColor = '';
     }
+}
+
+export function drawLockedSlots(slotCanvas) {
+    const ctx = slotCanvas.getContext('2d');
+
+    ctx.fillStyle = 'rgba(0,0,0,0.8)';
+    ctx.fillRect(0, 0, slotCanvas.width, slotCanvas.height);
+
+    ctx.fillStyle = "#888";
+    ctx.font = "30px Arial";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Locked', slotCanvas.width / 2, slotCanvas.height / 2);
+    slotCanvas.style.border = '2px solid #333';
+    slotCanvas.style.cursor = 'not-allowed';
+
+    slotCanvas.onclick = null;
 }

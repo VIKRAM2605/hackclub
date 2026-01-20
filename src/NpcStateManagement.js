@@ -4,16 +4,33 @@ import { getPlayerCollisionBox } from "./CharacterMovement.js";
 
 
 let spawnDelayTime = 20000;
+let minSpawnDelay = 2000;
+
 let lastSpawnTime = 0;
 let nextSpawnDelay = 4000 + Math.random() * spawnDelayTime;
 
 let patience = 25;
-let decrementPatienceTime = 0.001;
+let minPatience = 10;
 
 export const npcQueue = [];
 export const npcQueuePosition = [180, 210, 240];
 export let queuePointer = 0;
 
+const spriteSheet = new Image();
+spriteSheet.src = 'assets/Chef A2.png';
+
+const npcSprites = {
+    npc1: {
+        idle: { x: 38, y: 16, w: 20, h: 34 },
+        walk: [
+            { x: 38, y: 16, w: 20, h: 34 },
+            { x: 38, y: 58, w: 20, h: 34 },
+            { x: 70, y: 56, w: 20, h: 34 },
+            { x: 104, y: 58, w: 20, h: 34 },
+            { x: 134, y: 58, w: 20, h: 34 },
+        ]
+    }
+};
 const orderWeights = {
     'cookedPatty': 0.4,
     'cookedHotDog': 0.3,
@@ -53,8 +70,9 @@ export function spawnNpc(currentTime) {
         status: 'going',
     };
     npcQueue.push(npcData);
-    console.log(npcQueue)
-    lastSpawnTime = currentTime
+    console.log(npcQueue);
+    lastSpawnTime = currentTime;
+    nextSpawnDelay = 4000 + Math.random() * spawnDelayTime;
 }
 
 export function bringUpTheOrder() {
@@ -83,6 +101,8 @@ export function updateNpcQueue(deltaTime) {
                 npcQueue[0].status = "unserved"
                 npcQueue.shift();
                 deductHealth();
+                decreasePatienceTime();
+                decreaseSpawnDelayTime();
                 queuePointer = npcQueue.length;
                 return;
             }
@@ -91,6 +111,8 @@ export function updateNpcQueue(deltaTime) {
                 npcQueue[0].status = "served";
                 npcQueue.shift();
                 console.log(`Served! Queue length: ${npcQueue.length}`);
+                decreasePatienceTime();
+                decreaseSpawnDelayTime();
                 queuePointer = npcQueue.length;
                 showHealth()
                 return;
@@ -106,10 +128,14 @@ export function updateNpcQueue(deltaTime) {
 }
 
 export function decreaseSpawnDelayTime() {
-    spawnDelayTime = spawnDelayTime - 0.005;
+    if (spawnDelayTime > minSpawnDelay) {
+        spawnDelayTime -= 100;
+    }
 };
 export function decreasePatienceTime() {
-    patience = patience - decrementPatienceTime;
+    if (patience > minPatience) {
+        patience -= 200;
+    }
 }
 
 
@@ -131,7 +157,7 @@ export function drawQueue(ctx) {
         ctx.textAlign = 'center';
         ctx.fillText(customer.order, customer.positionX + 15, customer.positionY + 20);
 
-        if (i === 0 && customer.status ==="ordering") {
+        if (i === 0 && customer.status === "ordering") {
             ctx.fillStyle = 'red';
             ctx.fillRect(customer.positionX, customer.positionY - 8, 30, 4);
             ctx.fillStyle = customer.patience > 10 ? 'green' : 'orange';
@@ -154,13 +180,13 @@ export function isFirstNpcIntaractable(x, y, maxDistance = 60) {
     if (npcQueue[0].status !== "ordering") return false;
     //console.log(x,y);
 
-    const playerBox = getPlayerCollisionBox(x,y);
-    const playerCenterX = (playerBox.left + playerBox.right)/2;
-    const playerCenterY = (playerBox.top + playerBox.bottom)/2;
+    const playerBox = getPlayerCollisionBox(x, y);
+    const playerCenterX = (playerBox.left + playerBox.right) / 2;
+    const playerCenterY = (playerBox.top + playerBox.bottom) / 2;
 
     const npcWidth = 30;
     const npcHeight = 40;
-    
+
     const npcLeft = npcQueue[0].positionX;
     const npcTop = npcQueue[0].positionY;
 
@@ -170,4 +196,40 @@ export function isFirstNpcIntaractable(x, y, maxDistance = 60) {
     const dx = playerCenterX - npcCenterX;
     const dy = playerCenterY - npcCenterY;
     return (dx * dx + dy * dy) <= (maxDistance * maxDistance);
+}
+
+export function openNpcModal(template) {
+    if (!template) return;
+    const modal = document.createElement('div');
+    modal.id = "main-modal";
+    modal.innerHTML = template;
+    document.getElementById('game-container').appendChild(modal);
+    const npcSpriteCanva = document.getElementById('npc-sprite');
+    const ctxNpcSprite = npcSpriteCanva.getContext('2d');
+    drawNPCSpriteOnModal('npc1', npcSpriteCanva, ctxNpcSprite);
+
+    const closeButton = document.getElementById('close-modal');
+    closeButton.addEventListener('click', () => {
+        modal.remove();
+    })
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') modal.remove();
+    });
+
+}
+export function drawNPCSpriteOnModal(spriteName, canvas, ctx) {
+
+    const sprite = npcSprites[spriteName]['idle'];
+    console.log(sprite);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.drawImage(
+        spriteSheet,
+        sprite.x, sprite.y,
+        sprite.w, sprite.h,
+        0, 0,
+        sprite.w * 3, sprite.h
+    );
+
 }

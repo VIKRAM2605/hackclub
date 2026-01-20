@@ -6,12 +6,13 @@ export const objectCoordinates = {
     grillLevel11: {
         col: 2, row: 0.1, collisionWidth: 31, collisionHeight: 44,
         offsetX: 0, offsetY: 0,
+        unlockedSlots:1,
         interactable: true,
         onInteract: {
             template:grillTemplate,
-            onOpen:(canvas,ctx,player)=>{
-                console.log("function call=>",canvas,ctx,player);
-                createModal('grillLevel1',grillTemplate, canvas, ctx, player,1);
+            onOpen:(canvas,ctx,player,unlockedSlots)=>{
+                console.log("function call=>",canvas,ctx,player,unlockedSlots);
+                createModal('grillLevel1',grillTemplate, canvas, ctx, player,1,unlockedSlots);
             },
         }
     },

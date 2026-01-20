@@ -1,6 +1,7 @@
 import { objectCoordinates, renderObject } from "./ObjectCoordinates.js";
 import { drawFloor, kitchenSpriteLoaded, tileSize } from "./SceneCreation.js";
-import { decreasePatienceTime, decreaseSpawnDelayTime, drawQueue, isFirstNpcIntaractable, shouldSpawnNpc, spawnNpc, updateNpcQueue } from "./NpcStateManagement.js";
+import { decreasePatienceTime, decreaseSpawnDelayTime, drawQueue, isFirstNpcIntaractable, openNpcModal, shouldSpawnNpc, spawnNpc, updateNpcQueue } from "./NpcStateManagement.js";
+import { npcConvoTemplate } from "./InteractiveModals.js";
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
 
@@ -432,6 +433,12 @@ document.addEventListener('keydown', (e) => {
             if (obj) interactWithObject(obj);
             e.preventDefault();
             break;
+        case 'f':
+        case 'F':
+            const isNpcNear = isFirstNpcIntaractable(player.x, player.y);
+            if (isNpcNear) openNpcModal(npcConvoTemplate);
+            e.preventDefault();
+            break;
     }
 });
 
@@ -464,10 +471,10 @@ document.addEventListener('keyup', (e) => {
 export function interactWithObject(obj) {
     if (!obj) return;
     console.log(obj);
-    const { template, onOpen } = obj.coords.onInteract;
-    console.log(template, onOpen);
+    const { template, onOpen, } = obj.coords.onInteract;
+    //console.log(template, onOpen);
 
     if (typeof onOpen === "function") {
-        onOpen(canvas, ctx, player)
+        onOpen(canvas, ctx, player, obj.coords.unlockedSlots)
     }
 };
