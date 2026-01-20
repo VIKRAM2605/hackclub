@@ -1,4 +1,4 @@
-import { startTimer } from "./TimeCalculation.js";
+import { endTimer, startTimer } from "./TimeCalculation.js";
 
 export function initRetryPage() {
     retryPage();
@@ -38,7 +38,7 @@ export function showRetryPage() {
     const timeDisplay = document.getElementById('time-display');
 
     if(retryPage){
-        const finalTime = startTimer();
+        const finalTime = endTimer();
 
         timeDisplay.innerText = finalTime;
         console.log(finalTime);

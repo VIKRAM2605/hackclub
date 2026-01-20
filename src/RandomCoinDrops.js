@@ -6,9 +6,17 @@ export function spawncoin() {
      coin.className = 'coin';
      coin.src = '../assests/coin.webp'
 
-     const positionX = Math.random() * (window.innerWidth - 40);
-     coin.style.left = positionX + 'px';
-     coin.style.bottom = '0px';
+     const centerX = 400;
+     const centerY = 120;
+     const radius = 60;
+
+     const angle = Math.random() * Math.PI * 2;
+     const distance = Math.sqrt(Math.random()) * radius;
+
+     const randomX = centerX + (Math.cos(angle) * distance);
+     const randomY = centerY + (Math.sin(angle) * distance);
+     coin.style.left = randomX + 'px';
+     coin.style.bottom = randomY + 'px';
 
      document.body.appendChild(coin);
      coin.style.animation = 'popup 1.5s ease-out forwards';
@@ -41,11 +49,11 @@ export function randomInt(min, max) {
 }
 
 export function pauseAllCoins() {
-     const now =Date.now()
+     const now = Date.now()
      activeCoins.forEach(coinData => {
           clearTimeout(coinData.fadeTimeout);
           clearTimeout(coinData.removeTimeout);
-          coinData.pauseTime=now;
+          coinData.pauseTime = now;
      });
 }
 
@@ -67,12 +75,12 @@ export function resumeAllCoins() {
                     coinData.element.remove();
                     activeCoins = activeCoins.filter(c => c.element !== coinData.element);
                }, remainingRemoveTimeOut)
-          }else{
+          } else {
                coinData.element.remove();
-               activeCoins=activeCoins.filter(c=>c.element!==coinData.element);
+               activeCoins = activeCoins.filter(c => c.element !== coinData.element);
           }
 
-          coinData.pauseTime=null;
+          coinData.pauseTime = null;
      })
 }
 

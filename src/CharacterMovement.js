@@ -473,7 +473,7 @@ document.addEventListener('keyup', (e) => {
 export function interactWithObject(obj) {
     if (!obj) return;
     console.log(obj);
-    const { template, onOpen, } = obj.coords.onInteract;
+    const { onOpen, } = obj.coords.onInteract;
     //console.log(template, onOpen);
 
     if (typeof onOpen === "function") {

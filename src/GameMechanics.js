@@ -13,7 +13,7 @@ export function startGame() {
     // Start spawning coins
     spawnInterval = setInterval(() => {
         spawncoin();
-    }, randomInt(5000, 10000));
+    }, randomInt(60000, 120000));
 }
 
 export function pauseGame() {
@@ -37,7 +37,7 @@ export function resumeGame() {
     resumeAllCoins();
     spawnInterval = setInterval(() => {
         spawncoin();
-    }, randomInt(5000, 10000));
+    }, randomInt(60000, 120000));
 }
 
 export function quitGame(){
