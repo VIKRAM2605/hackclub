@@ -12,7 +12,7 @@ export const objectCoordinates = {
             template:grillTemplate,
             onOpen:(canvas,ctx,player,unlockedSlots)=>{
                 console.log("function call=>",canvas,ctx,player,unlockedSlots);
-                createModal('shop',shopTemplate, canvas, ctx, player,1,unlockedSlots);
+                createModal('grillLevel1',grillTemplate, canvas, ctx, player,1,unlockedSlots);
             },
         }
     },
@@ -151,7 +151,4 @@ export function renderObject() {
     Object.entries(objectCoordinates).forEach(([key, value]) => {
         drawSprite(key, value.col, value.row);
     });
-}
-
-export function updateRenderObjectCoordinates() {
 }

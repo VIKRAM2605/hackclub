@@ -12,11 +12,11 @@ export function getBalance() {
 export function currentBalance() {
     let wallet = document.getElementById('walletBalance');
     if (!wallet) {
-        const wallet = document.createElement('div');
+        wallet = document.createElement('div');
         wallet.className = 'wallet';
         wallet.id = 'walletBalance'
         wallet.textContent = `$${currentMoney.toFixed(2)}`;
-        document.body.appendChild(wallet);
+        document.getElementById('game-container').appendChild(wallet);
     } else {
         wallet.textContent = `$${currentMoney.toFixed(2)}`;
     }

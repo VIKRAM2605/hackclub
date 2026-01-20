@@ -1,3 +1,5 @@
+import { showRetryPage } from "./RetryPage.js";
+
 export const health = [1, 1];
 
 
@@ -19,6 +21,7 @@ export function deductHealth() {
     const dead = isDead();
     if(dead){
         console.log("Player died");
+        showRetryPage();
         //in furture this if block stops the game and trigger the re-try option for now it will just console player is dead
     }
 }
