@@ -1,4 +1,4 @@
-import { cookedFoodCount } from "./StateManagement.js";
+import { cookedFoodCount, drawSpriteOnModal } from "./StateManagement.js";
 import { deductHealth, showHealth } from "./HealthStateManagement.js";
 import { getPlayerCollisionBox } from "./CharacterMovement.js";
 
@@ -11,6 +11,8 @@ let nextSpawnDelay = 4000 + Math.random() * spawnDelayTime;
 
 let patience = 25;
 let minPatience = 10;
+
+let npcsServedCount = 0;
 
 export const npcQueue = [];
 export const npcQueuePosition = [180, 210, 240];
@@ -34,8 +36,8 @@ const npcSprites = {
 const orderWeights = {
     'cookedPatty': 0.4,
     'cookedHotDog': 0.3,
-    'cookedBurger': 0.2,
-    'fries': 0.1,
+    // 'cookedBurger': 0.2,
+    // 'fries': 0.1,
 };
 
 const totalWeight = Object.values(orderWeights).reduce((sum, w) => sum + w, 0);
@@ -43,8 +45,25 @@ const totalWeight = Object.values(orderWeights).reduce((sum, w) => sum + w, 0);
 export function spawnNpc(currentTime) {
     const npcId = `npc_${Date.now()}`;
 
+    let maxOrdersPerNPC = 1;
+    let maxQuantityPerItem = 1;
+
+    if (npcsServedCount >= 5) {
+        maxQuantityPerItem = 2;
+    }
+    if (npcsServedCount >= 10) {
+        maxOrdersPerNPC = 2;
+    }
+    if (npcsServedCount >= 20) {
+        maxQuantityPerItem = 3;
+    }
+    if (npcsServedCount >= 30) {
+        maxOrdersPerNPC = 3;
+        maxQuantityPerItem = 4;
+    }
+
     let order = [];
-    const totalOrders = 1 + Math.floor(Math.random() * 3);
+    const totalOrders = 1 + Math.floor(Math.random() * maxOrdersPerNPC);
 
     for (let i = 0; i < totalOrders; i++) {
         let randFood = Math.random() * totalWeight;
@@ -56,8 +75,21 @@ export function spawnNpc(currentTime) {
                 break;
             }
         }
-        const quantity = 1 + Math.floor(Math.random() * 4);
-        order.push({ food: selectedFood, quantity: quantity });
+        const quantity = 1 + Math.floor(Math.random() * maxQuantityPerItem);
+
+        const alreadyOrdered = order.some(o => o.food === selectedFood);
+        if (!alreadyOrdered) {
+            order.push({ food: selectedFood, quantity: quantity });
+        } else {
+            const existingItem = order.find(o => o.food === selectedFood);
+            if (existingItem.quantity < maxQuantityPerItem) {
+                existingItem.quantity++;
+            }
+        }
+    }
+
+    if (order.length === 0) {
+        order.push({ food: 'cookedPatty', quantity: 1 });
     }
 
     const npcData = {
@@ -106,17 +138,6 @@ export function updateNpcQueue(deltaTime) {
                 queuePointer = npcQueue.length;
                 return;
             }
-            if (cookedFoodCount[npcQueue[0].order] > 0) {
-                cookedFoodCount[npcQueue[0].order]--;
-                npcQueue[0].status = "served";
-                npcQueue.shift();
-                console.log(`Served! Queue length: ${npcQueue.length}`);
-                decreasePatienceTime();
-                decreaseSpawnDelayTime();
-                queuePointer = npcQueue.length;
-                showHealth()
-                return;
-            }
         }
 
         npcQueue[i].positionY = targetY;
@@ -134,7 +155,7 @@ export function decreaseSpawnDelayTime() {
 };
 export function decreasePatienceTime() {
     if (patience > minPatience) {
-        patience -= 200;
+        patience -= 0.5;
     }
 }
 
@@ -199,14 +220,114 @@ export function isFirstNpcIntaractable(x, y, maxDistance = 60) {
 }
 
 export function openNpcModal(template) {
-    if (!template) return;
+    if (!template || !npcQueue[0] || npcQueue[0].status !== "ordering") return;
     const modal = document.createElement('div');
     modal.id = "main-modal";
     modal.innerHTML = template;
     document.getElementById('game-container').appendChild(modal);
+
     const npcSpriteCanva = document.getElementById('npc-sprite');
     const ctxNpcSprite = npcSpriteCanva.getContext('2d');
+
     drawNPCSpriteOnModal('npc1', npcSpriteCanva, ctxNpcSprite);
+
+    const currentOrder = npcQueue[0].order;
+    const foodListContainer = document.getElementById('npc-foods');
+    const serveBtn = document.getElementById('serve-button');
+
+    let canAffordAll = true;
+    foodListContainer.innerHTML = '';
+
+    currentOrder.forEach(item => {
+        const requiredAmount = item.quantity;
+        const playerHas = cookedFoodCount[item.food] || 0;
+        const hasEnough = playerHas >= requiredAmount ? true : false;
+
+        if (!hasEnough) canAffordAll = false;
+
+        const row = document.createElement('div');
+        row.style.display = "flex";
+        row.style.alignItems = "center";
+        row.style.marginBottom = "10px";
+        row.style.background = "rgba(255, 255, 255, 0.05)";
+        row.style.padding = "8px";
+        row.style.borderRadius = "8px";
+
+        const foodCanvas = document.createElement('canvas');
+        foodCanvas.width = 50;
+        foodCanvas.height = 50;
+        foodCanvas.style.marginRight = "15px";
+
+        const foodctx = foodCanvas.getContext('2d');
+        foodctx.imageSmoothingEnabled = false;
+
+        console.log(item.food);
+        drawSpriteOnModal(item.food, foodCanvas, foodctx);
+
+        const infoText = document.createElement('div');
+        infoText.style.display = "flex";
+        infoText.style.flexDirection = "column";
+
+        const qtyText = document.createElement('span');
+        qtyText.style.fontWeight = "bold";
+        qtyText.style.fontSize = "18px";
+        qtyText.style.color = "#eee";
+        qtyText.innerText = `x ${requiredAmount}`;
+
+        const stockText = document.createElement('span');
+        stockText.style.fontSize = "12px";
+        stockText.style.marginTop = "2px";
+        stockText.style.color = hasEnough ? "#4caf50" : "#ff5252";
+        stockText.innerText = hasEnough
+            ? `Available: ${playerHas}`
+            : `Missing (${playerHas}/${requiredAmount})`;
+
+        infoText.appendChild(qtyText);
+        infoText.appendChild(stockText);
+
+        row.appendChild(foodCanvas);
+        row.appendChild(infoText);
+        foodListContainer.appendChild(row);
+
+    });
+
+    if (!canAffordAll) {
+        serveBtn.style.background = "#444";
+        serveBtn.style.color = "#aaa";
+        serveBtn.style.cursor = "not-allowed";
+        serveBtn.innerText = "Not enough";
+    } else {
+        serveBtn.innerText = "Serve Order";
+        serveBtn.style.background = "#2e8b57";
+    }
+
+    serveBtn.addEventListener('click', () => {
+        if (!canAffordAll) return; 
+
+        currentOrder.forEach(item => {
+            cookedFoodCount[item.food] -= item.quantity;
+        });
+
+        npcQueue[0].status = "served";
+        npcQueue.shift();
+
+        console.log(`Order Served! Remaining Queue: ${npcQueue.length}`);
+
+        decreasePatienceTime();
+        decreaseSpawnDelayTime();
+        npcsServedCount++;
+        modal.remove();
+    });
+
+    const unServeBtn = document.getElementById('unserve-button');
+    unServeBtn.addEventListener('click',()=>{
+        npcQueue[0].status = "served";
+        npcQueue.shift();
+
+        deductHealth();
+
+        modal.remove();
+    })
 
     const closeButton = document.getElementById('close-modal');
     closeButton.addEventListener('click', () => {

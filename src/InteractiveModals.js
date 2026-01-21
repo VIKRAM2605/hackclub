@@ -155,7 +155,7 @@ export const npcConvoTemplate = `
                     font-weight: 600;
                     transition: background 0.2s;
                 " onmouseover="this.style.background='#4a4a55'" onmouseout="this.style.background='#3a3a45'">
-                    Refuse
+                    Refuse Order
                 </button>
                 
                 <button id="serve-button" style="

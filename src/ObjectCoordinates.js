@@ -8,11 +8,12 @@ export const objectCoordinates = {
         offsetX: 0, offsetY: 0,
         unlockedSlots:1,
         interactable: true,
+        name:'grill station',
+        cookingTime:10,
         onInteract: {
-            template:grillTemplate,
             onOpen:(canvas,ctx,player,unlockedSlots)=>{
                 console.log("function call=>",canvas,ctx,player,unlockedSlots);
-                createModal('grillLevel1',grillTemplate, canvas, ctx, player,1,unlockedSlots);
+                createModal('grillLevel11',grillTemplate, canvas, ctx, player,1,unlockedSlots);
             },
         }
     },

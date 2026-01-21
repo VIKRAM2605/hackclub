@@ -19,6 +19,14 @@ export const cookedFoodCount = {
 const spriteSheet = new Image();
 spriteSheet.src = "assets/professional_kitchen_withshadows.png";
 
+function toTitleCase(str) {
+  return str.toLowerCase().split(' ')
+    .map(word => {
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+}
+
 //creating the modal with the template
 export function createModal(templateName, template, canvas, ctx, player, objectId, unlockedSlots) {
     //console.log(template);
@@ -33,7 +41,7 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
     const canvasMainSprite = document.getElementById('canvas-sprite');
     if (canvasMainSprite) {
         const ctxMainSprite = canvasMainSprite.getContext('2d');
-        drawSpriteOnModal(templateName, canvasMainSprite, ctxMainSprite);
+        drawSpriteOnModal(templateName.slice(0,-1), canvasMainSprite, ctxMainSprite);
     }
 
     if (templateName == 'shop') {
@@ -56,7 +64,7 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
                     slotCard.style.cssText = "border: 1px solid #555; margin: 10px; padding: 10px; background: #333; display: flex; justify-content: space-between; align-items: center;";
                     slotCard.innerHTML = `
                         <div>
-                            <h3 style="margin:0; color:#fff">${objName.replace(/([A-Z])/g, ' $1').trim()}</h3>
+                            <h3 style="margin:0; color:#fff">${toTitleCase(obj.name.trim())}</h3>
                             <p style="margin:5px 0; color:#aaa">Level: ${obj.unlockedSlots} → ${nextLevel}</p>
                             <p style="margin:0; color:#4CAF50; font-weight:bold">Price: $${cost}</p>
                         </div>
@@ -85,7 +93,7 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
         updateshopUi();
 
     }
-    else if (templateName == 'grillLevel1') {
+    else if (templateName == 'grillLevel11') {
         const canvasCookedSprite = document.getElementById('cooked-canvas-sprite');
 
         // canvasCookedSprite.dataset.id=objectId;
@@ -108,12 +116,12 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
         })
 
 
-        refillSlotsToPreviousState(objectId, unlockedSlots);
+        refillSlotsToPreviousState(objectId, unlockedSlots,templateName);
         canvasCookedSprite.style.cursor = 'pointer';
 
         canvasCookedSprite.addEventListener('click', () => {
             console.log('clicked cooked patty');
-            addItemsToSlot('cookedPatty', objectId, unlockedSlots);
+            addItemsToSlot('cookedPatty', objectId, unlockedSlots,templateName);
         })
 
     }
@@ -146,7 +154,7 @@ export function drawSpriteOnModal(spriteName, canvas, ctx) {
 
 }
 
-export function addItemsToSlot(spriteName, objectId, unlockedSlots) {
+export function addItemsToSlot(spriteName, objectId, unlockedSlots,templateName) {
     const slots = ['slot-1', 'slot-2', 'slot-3', 'slot-4'];
     let targetSlot = null;
     let targetSlotId = null;
@@ -215,16 +223,16 @@ export function addItemsToSlot(spriteName, objectId, unlockedSlots) {
         };
 
         State[objectId][targetSlotId].animationId = requestAnimationFrame((currentTime) =>
-            animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, targetSlotId)
+            animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, targetSlotId,templateName)
         );
     } else {
         console.log('No empty slots available!');
     }
 }
 
-export function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, targetSlotId) {
+export function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, targetSlotId,templateName) {
     const elapsed = Math.floor((currentTime - State[objectId][targetSlotId].startTime) / 1000);
-    const timeLeft = Math.max(0, 10 - elapsed);
+    const timeLeft = Math.max(0, objectCoordinates[templateName].cookingTime - elapsed);
 
     // Clear and redraw
     ctx.clearRect(0, 0, targetSlot.width, targetSlot.height);
@@ -240,7 +248,7 @@ export function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId,
 
     if (timeLeft > 0) {
         State[objectId][targetSlotId].animationId = requestAnimationFrame((time) =>
-            animateTimer(time, spriteName, ctx, targetSlot, objectId, targetSlotId)
+            animateTimer(time, spriteName, ctx, targetSlot, objectId, targetSlotId,templateName)
         );
     } else {
         console.log("cooked food");
@@ -269,7 +277,7 @@ export function updateCookedFoodCount(foodName) {
 }
 
 
-export function refillSlotsToPreviousState(objectId, unlockedSlots) {
+export function refillSlotsToPreviousState(objectId, unlockedSlots,templateName) {
     const slots = ['slot-1', 'slot-2', 'slot-3', 'slot-4'];
     State[objectId] ??= {};
     for (let i = 0; i < slots.length; i++) {
@@ -279,12 +287,12 @@ export function refillSlotsToPreviousState(objectId, unlockedSlots) {
         let slotId = slots[i];
         const slotCanvas = document.querySelector(`#${slotId}`);
         if (slotCanvas && State[objectId][slotId]) {
-            redrawSlot(slotId, objectId, slotCanvas);
+            redrawSlot(slotId, objectId, slotCanvas,templateName);
         }
     }
 };
 
-export function redrawSlot(slotId, objectId, slotCanvas) {
+export function redrawSlot(slotId, objectId, slotCanvas,templateName) {
     const slotData = State[objectId][slotId];
     const ctx = slotCanvas.getContext('2d');
 
@@ -321,7 +329,7 @@ export function redrawSlot(slotId, objectId, slotCanvas) {
 
         const now = performance.now();
         const elapsed = Math.floor((now - slotData.startTime) / 1000);
-        const timeLeft = Math.max(0, 10 - elapsed);
+        const timeLeft = Math.max(0, objectCoordinates[templateName].cookingTime - elapsed);
 
         ctx.clearRect(0, 0, slotCanvas.width, slotCanvas.height);
         drawSpriteOnModal(slotData.spriteName, slotCanvas, ctx);
@@ -335,7 +343,7 @@ export function redrawSlot(slotId, objectId, slotCanvas) {
 
         if (timeLeft > 0) {
             slotData.animationId = requestAnimationFrame((currentTime) =>
-                animateTimer(currentTime, slotData.spriteName, ctx, slotCanvas, objectId, slotId)
+                animateTimer(currentTime, slotData.spriteName, ctx, slotCanvas, objectId, slotId,templateName)
             );
         }
     } else if (slotData.status === 'cooked') {
