@@ -1,7 +1,7 @@
 import { objectCoordinates } from "./ObjectCoordinates.js";
 import { sprites } from "./SceneCreation.js";
 import { attemptUpgrade, getNextUpgradeForObject, upgrades } from "./ShopStateManagement.js";
-import { getBalance } from "./wallet.js";
+import { getBalance } from "./Wallet.js";
 
 export const State = {
 
