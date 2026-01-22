@@ -1,5 +1,5 @@
 import { objectCoordinates } from "./ObjectCoordinates.js";
-import { getBalance, deductBalance } from "./wallet.js";
+import { getBalance, deductBalance } from "./Wallet.js";
 
 export const upgrades = {
     grillLevel1: {
