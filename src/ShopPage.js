@@ -19,7 +19,7 @@ export function buildStartPageButton(){
     const shopBtn = document.getElementById('shop-button');
 
     shopBtn.onclick=()=>{
-        createModal('shop',shopTemplate,)
+        createModal('shop',shopTemplate);
     }
 
 }

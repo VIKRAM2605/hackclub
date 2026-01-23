@@ -3,6 +3,7 @@ import { drawFloor, kitchenSpriteLoaded, tileSize } from "./SceneCreation.js";
 import { decreasePatienceTime, decreaseSpawnDelayTime, drawQueue, isFirstNpcIntaractable, openNpcModal, shouldSpawnNpc, spawnNpc, updateLeavingNpcs, updateNpcQueue } from "./NpcStateManagement.js";
 import { npcConvoTemplate } from "./InteractiveModals.js";
 import { startTimer } from "./TimeCalculation.js";
+import { checkSpillCollision, drawSpills, updateSpills } from "./RandomOilSpillage.js";
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
 
@@ -31,6 +32,8 @@ let player = {
     speed: 0.5,
     direction: 'right',
     isMoving: false,
+    isSlipping: false,
+    slipTimer: 0,
     frameIndex: 0,
     frameCounter: 0,
     animationSpeed: 18,
@@ -55,6 +58,16 @@ const sprites = {
             { x: 70, y: 56, w: 20, h: 34 },
             { x: 104, y: 58, w: 20, h: 34 },
             { x: 134, y: 58, w: 20, h: 34 },
+        ],
+        slip: [
+            { x: 26, y: 128, w: 32, h: 34 },
+            { x: 62, y: 136, w: 32, h: 34 },
+            { x: 96, y: 136, w: 32, h: 34 },
+            { x: 128, y: 138, w: 32, h: 34 },
+            { x: 166, y: 136, w: 32, h: 34 },
+            { x: 200, y: 136, w: 32, h: 34 },
+
+
         ]
     }
 };
@@ -126,12 +139,18 @@ export function getPlayerCollisionBox(x, y) {
 }
 
 export function drawPlayer() {
-    const walkFrames = sprites.player.walk;
-    const frameCount = walkFrames.length;
-    const currentFrame = player.isMoving
-        ? walkFrames[player.frameIndex % frameCount]
-        : sprites.player.idle;
+    let currentFrame;
 
+    if (player.isSlipping) {
+        const slipFrames = sprites.player.slip;
+        currentFrame = slipFrames[player.frameIndex % slipFrames.length];
+    } else {
+        const walkFrames = sprites.player.walk;
+        const frameCount = walkFrames.length;
+        currentFrame = player.isMoving
+            ? walkFrames[player.frameIndex % frameCount]
+            : sprites.player.idle;
+    }
     ctx.save();
     ctx.translate(Math.round(player.x), Math.round(player.y));
 
@@ -139,7 +158,6 @@ export function drawPlayer() {
         ctx.scale(-1, 1);
     }
 
-    // Set imageSmoothingEnabled to false before drawing (in case it was changed elsewhere)
     ctx.imageSmoothingEnabled = false;
 
     ctx.drawImage(
@@ -150,65 +168,100 @@ export function drawPlayer() {
         currentFrame.h,
         Math.round(-player.width / 2),
         Math.round(-player.height / 2),
-        player.width,
-        player.height
+        currentFrame.w,
+        currentFrame.h
     );
 
     ctx.restore();
 }
 
-export function updatePlayer() {
+export function updatePlayer(slipping) {
+
+    if (slipping && player.slipTimer <= 0) {
+        player.slipTimer = 60;
+    }
+
+    if (player.slipTimer > 0) {
+        player.isSlipping = true;
+        player.slipTimer--;
+    } else {
+        player.isSlipping = false;
+    }
+
     let moveX = 0;
     let moveY = 0;
 
-    if (keys.up) moveY -= 1;
-    if (keys.down) moveY += 1;
-    if (keys.left) moveX -= 1;
-    if (keys.right) moveX += 1;
+    if (player.isSlipping) {
+        const slideForce = 1.0;
+        switch (player.direction) {
+            case 'left': moveX = -slideForce; break;
+            case 'right': moveX = slideForce; break;
+            case 'up': moveY = -slideForce; break;
+            case 'down': moveY = slideForce; break;
+        }
+        player.isMoving = true;
+    } else {
+        if (keys.up) moveY -= 1;
+        if (keys.down) moveY += 1;
+        if (keys.left) moveX -= 1;
+        if (keys.right) moveX += 1;
 
-    player.isMoving = (moveX !== 0 || moveY !== 0);
+        player.isMoving = (moveX !== 0 || moveY !== 0);
+    }
+
 
     if (player.isMoving) {
+
         // Normalize diagonal movement
-        if (moveX !== 0 && moveY !== 0) {
+        if (!player.isSlipping && moveX !== 0 && moveY !== 0) {
             moveX *= 0.707;
             moveY *= 0.707;
         }
 
-        const stepX = moveX * player.speed;
-        const stepY = moveY * player.speed;
+        const currentSpeed = player.speed;
+
+        const stepX = moveX * currentSpeed;
+        const stepY = moveY * currentSpeed;
 
         const newX = player.x + stepX;
         const newY = player.y + stepY;
 
-        // Try moving in both directions first
         if (isValidPosition(newX, newY)) {
             player.x = newX;
             player.y = newY;
         }
-        // If diagonal movement blocked, try sliding along obstacles
         else {
-            // Try moving only horizontally (slide along vertical walls/objects)
+            let hitWall = true;
             if (stepX !== 0 && isValidPosition(newX, player.y)) {
                 player.x = newX;
+                hitWall = false;
             }
-            // Try moving only vertically (slide along horizontal walls/objects)
             if (stepY !== 0 && isValidPosition(player.x, newY)) {
                 player.y = newY;
+                hitWall = false;
+            }
+            if (player.isSlipping && hitWall) {
+                player.isSlipping = false;
+                player.slipTimer = 0;
             }
         }
 
-        // Update direction based on input
-        if (moveX < 0) player.direction = 'left';
-        else if (moveX > 0) player.direction = 'right';
-        else if (moveY < 0) player.direction = 'up';
-        else if (moveY > 0) player.direction = 'down';
+        if (!player.isSlipping) {
+            if (moveX < 0) player.direction = 'left';
+            else if (moveX > 0) player.direction = 'right';
+            else if (moveY < 0) player.direction = 'up';
+            else if (moveY > 0) player.direction = 'down';
+        }
 
         player.frameCounter++;
 
-        const walkFrames = sprites.player.walk;
-        const frameCount = walkFrames.length || 1;
-        if (player.frameCounter >= player.animationSpeed) {
+        let currentAnimationArray = player.isSlipping ? sprites.player.slip : sprites.player.walk;
+
+        const frameCount = currentAnimationArray.length || 1;
+
+        const animSpeed = player.isSlipping ? player.animationSpeed * 1.5 : player.animationSpeed;
+
+        if (player.frameCounter >= animSpeed) {
             player.frameCounter = 0;
             player.frameIndex = (player.frameIndex + 1) % frameCount;
         }
@@ -340,6 +393,7 @@ function showInteractButton(text = 'Press E') {
     requestAnimationFrame(() => el.style.opacity = '1');
 }
 
+
 function hideInteractButton() {
     const el = document.getElementById('interact-text');
     if (!el) return;
@@ -354,18 +408,30 @@ export function gameLoop(currentTime) {
     const deltaTime = currentTime - lastTime;
     lastTime = currentTime
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    updatePlayer();
+
+    const isSlipping = checkSpillCollision(player.x, player.y);
+
+    updatePlayer(isSlipping);
+
     drawFloor();
+
+    updateSpills(currentTime, canvas);
+    drawSpills(ctx);
+
+
     renderObject();
+
     drawPlayer();
+
     drawCollisionBoxes();
 
     if (shouldSpawnNpc(currentTime)) {
         spawnNpc(currentTime);
     }
-
     updateNpcQueue(deltaTime);
+
     updateLeavingNpcs(deltaTime);
+
     drawQueue(ctx);
 
     const nearby = getNearByInteractables(player.x, player.y);
