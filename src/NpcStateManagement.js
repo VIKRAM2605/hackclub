@@ -1,6 +1,7 @@
 import { cookedFoodCount, drawSpriteOnModal } from "./StateManagement.js";
 import { deductHealth, showHealth } from "./HealthStateManagement.js";
 import { getPlayerCollisionBox } from "./CharacterMovement.js";
+import { killerNpcDialogs, normalNpcDialogs } from "./NpcDialogs.js";
 
 
 let spawnDelayTime = 20000;
@@ -96,6 +97,7 @@ export function spawnNpc(currentTime) {
         order.push({ food: 'cookedPatty', quantity: 1 });
     }
 
+    const isKiller = Math.random() < killerChance ? true : false;
     const npcData = {
         id: npcId,
         order,
@@ -104,7 +106,9 @@ export function spawnNpc(currentTime) {
         positionX: -50,
         positionY: npcQueuePosition[queuePointer++],
         status: 'going',
-        isKiller: Math.random() < killerChance ? true : false,
+        isKiller: isKiller,
+        dialog: getNpcDialog(isKiller, 'greeting'),
+        reachedHalfPatience: false,
     };
     npcQueue.push(npcData);
     console.log(npcQueue);
@@ -112,9 +116,15 @@ export function spawnNpc(currentTime) {
     nextSpawnDelay = 4000 + Math.random() * spawnDelayTime;
 }
 
-export function bringUpTheOrder() {
+export function getNpcDialog(isKiller, category) {
+    const dialogSource = isKiller ? killerNpcDialogs : normalNpcDialogs;
 
-};
+    const lines = dialogSource[category];
+
+    const randomLineIndex = Math.floor(Math.random() * lines.length);
+
+    return lines[randomLineIndex];
+}
 
 export function updateNpcQueue(deltaTime) {
     if (npcQueue.length === 0) return;
@@ -133,9 +143,15 @@ export function updateNpcQueue(deltaTime) {
         }
         if (i === 0 && Math.abs(npcQueue[0].positionX - targetX) < 5) {
             npcQueue[0].patience -= deltaTime / 1000;
+            if (npcQueue[0].patience == patience / 2 && !npcQueue[0].reachedHalfPatience) {
+                npcQueue[0].dialog = getNpcDialog(npcQueue[0].isKiller, "waiting");
+                npcQueue[0].reachedHalfPatience = true;
+            }
             if (npcQueue[0].patience < 0) {
                 console.log(`${npcQueue[0].order} left angry!`);
-                npcQueue[0].status = "unserved"
+                npcQueue[0].dialog = getNpcDialog(npcQueue[0].isKiller, "angry");
+                npcQueue[0].status = "unserved";
+                leavingNpcs.push(npcQueue[0]);
                 npcQueue.shift();
                 deductHealth();
                 decreasePatienceTime();
@@ -152,14 +168,17 @@ export function updateNpcQueue(deltaTime) {
 
 }
 
-export function updateLeavingNpcs(deltaTime){
-    if(leavingNpcs.length == 0) return;
+export function updateLeavingNpcs(deltaTime) {
+    if (leavingNpcs.length == 0) return;
     const exitTargetX = 600;
-    for(let i=leavingNpcs.length - 1;i>=0;i--){
+    for (let i = leavingNpcs.length - 1; i >= 0; i--) {
         const npc = leavingNpcs[i];
 
-        if(npc.positionX < exitTargetX){
-            npc.positionX += 60 * (deltaTime/1000);
+        if (npc.positionX < exitTargetX) {
+            npc.positionX += 60 * (deltaTime / 1000);
+        } else {
+            console.log(`${npc.id} has left the map.`)
+            leavingNpcs.splice(i, 1);
         }
     }
 };
@@ -183,6 +202,20 @@ export function shouldSpawnNpc(currentTime) {
 
 
 export function drawQueue(ctx) {
+
+    for (let i = 0; i < leavingNpcs.length; i++) {
+        const customer = leavingNpcs[i];
+
+        if (customer.status === 'served') ctx.fillStyle = '#88ccaa';
+        else ctx.fillStyle = '#ff5555';
+
+        ctx.fillRect(customer.positionX, customer.positionY, 30, 40);
+
+        ctx.fillStyle = 'white';
+        ctx.font = '10px Arial';
+        ctx.fillText(customer.status === 'served' ? "happy" : " angry", customer.positionX + 15, customer.positionY + 20);
+    }
+
     for (let i = 0; i < npcQueue.length; i++) {
         const customer = npcQueue[i];
 
@@ -194,7 +227,7 @@ export function drawQueue(ctx) {
         ctx.textAlign = 'center';
         ctx.fillText(customer.order, customer.positionX + 15, customer.positionY + 20);
 
-        if (i === 0 && customer.status === "ordering") {
+        if (customer.status === "ordering") {
             ctx.fillStyle = 'red';
             ctx.fillRect(customer.positionX, customer.positionY - 8, 30, 4);
             ctx.fillStyle = customer.patience > 10 ? 'green' : 'orange';
@@ -249,10 +282,13 @@ export function openNpcModal(template) {
 
     const currentOrder = npcQueue[0].order;
     const foodListContainer = document.getElementById('npc-foods');
+    const npcDialog = document.getElementById('npc-dialog');
     const serveBtn = document.getElementById('serve-button');
 
     let canAffordAll = true;
     foodListContainer.innerHTML = '';
+
+    npcDialog.innerText = npcQueue[0].dialog;
 
     currentOrder.forEach(item => {
         const requiredAmount = item.quantity;
@@ -323,15 +359,15 @@ export function openNpcModal(template) {
         currentOrder.forEach(item => {
             cookedFoodCount[item.food] -= item.quantity;
         });
-
+        npcQueue[0].dialog = getNpcDialog(npcQueue[0].isKiller, "served");
         npcQueue[0].status = "served";
-        npcQueue.shift();
-
-        console.log(`Order Served! Remaining Queue: ${npcQueue.length}`);
-
+        leavingNpcs.push(npcQueue[0]);
         if (npcQueue[0].isKiller) {
             deductHealth();
         }
+        npcQueue.shift();
+
+        console.log(`Order Served! Remaining Queue: ${npcQueue.length}`);
 
         decreasePatienceTime();
         decreaseSpawnDelayTime();
@@ -341,8 +377,10 @@ export function openNpcModal(template) {
 
     const unServeBtn = document.getElementById('unserve-button');
     unServeBtn.addEventListener('click', () => {
-        npcQueue[0].status = "served";
 
+        npcQueue[0].dialog = getNpcDialog(npcQueue[0].isKiller, "angry")
+        npcQueue[0].status = "unserved";
+        leavingNpcs.push(npcQueue[0]);
         if (!npcQueue[0].isKiller) {
             deductHealth();
         }

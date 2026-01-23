@@ -133,7 +133,6 @@ export const npcConvoTemplate = `
                 margin-bottom: 15px;
                 min-height: 50px;
             ">
-                Hello chef...
             </div>
 
             <div id="npc-foods" style="margin-bottom: 10px;"></div>

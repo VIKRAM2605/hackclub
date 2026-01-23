@@ -1,6 +1,7 @@
 import { startGame,pauseGame, resumeGame, quitGame } from "./GameMechanics.js";
 import { hidePauseMenu, hidePauseMenuPage, showPauseMenu, showPauseMenuPage } from "./PauseMenu.js";
 import { removeAllCoins, resumeAllCoins } from "./RandomCoinDrops.js";
+import { initStartPageButton } from "./ShopPage.js";
 import { showStartPage,hideStartPage } from "./StartPage.js";
 import { displayBalance, hideBalance } from "./Wallet.js";
 
@@ -14,6 +15,7 @@ startButton.addEventListener('click', () => {
     startGame();
     showPauseMenu();
     displayBalance();
+    initStartPageButton();
 });
 
 const pauseButton = document.getElementById('pause-button');

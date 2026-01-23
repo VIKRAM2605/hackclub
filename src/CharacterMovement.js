@@ -1,6 +1,6 @@
 import { objectCoordinates, renderObject } from "./ObjectCoordinates.js";
 import { drawFloor, kitchenSpriteLoaded, tileSize } from "./SceneCreation.js";
-import { decreasePatienceTime, decreaseSpawnDelayTime, drawQueue, isFirstNpcIntaractable, openNpcModal, shouldSpawnNpc, spawnNpc, updateNpcQueue } from "./NpcStateManagement.js";
+import { decreasePatienceTime, decreaseSpawnDelayTime, drawQueue, isFirstNpcIntaractable, openNpcModal, shouldSpawnNpc, spawnNpc, updateLeavingNpcs, updateNpcQueue } from "./NpcStateManagement.js";
 import { npcConvoTemplate } from "./InteractiveModals.js";
 import { startTimer } from "./TimeCalculation.js";
 const canvas = document.getElementById('canvas1');
@@ -365,6 +365,7 @@ export function gameLoop(currentTime) {
     }
 
     updateNpcQueue(deltaTime);
+    updateLeavingNpcs(deltaTime);
     drawQueue(ctx);
 
     const nearby = getNearByInteractables(player.x, player.y);
