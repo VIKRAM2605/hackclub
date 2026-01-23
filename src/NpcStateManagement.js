@@ -14,7 +14,11 @@ let minPatience = 10;
 
 let npcsServedCount = 0;
 
+let killerChance = 0.05;
+
 export const npcQueue = [];
+export const leavingNpcs = [];
+
 export const npcQueuePosition = [180, 210, 240];
 export let queuePointer = 0;
 
@@ -100,6 +104,7 @@ export function spawnNpc(currentTime) {
         positionX: -50,
         positionY: npcQueuePosition[queuePointer++],
         status: 'going',
+        isKiller: Math.random() < killerChance ? true : false,
     };
     npcQueue.push(npcData);
     console.log(npcQueue);
@@ -145,8 +150,19 @@ export function updateNpcQueue(deltaTime) {
 
     queuePointer = npcQueue.length;
 
-
 }
+
+export function updateLeavingNpcs(deltaTime){
+    if(leavingNpcs.length == 0) return;
+    const exitTargetX = 600;
+    for(let i=leavingNpcs.length - 1;i>=0;i--){
+        const npc = leavingNpcs[i];
+
+        if(npc.positionX < exitTargetX){
+            npc.positionX += 60 * (deltaTime/1000);
+        }
+    }
+};
 
 export function decreaseSpawnDelayTime() {
     if (spawnDelayTime > minSpawnDelay) {
@@ -302,7 +318,7 @@ export function openNpcModal(template) {
     }
 
     serveBtn.addEventListener('click', () => {
-        if (!canAffordAll) return; 
+        if (!canAffordAll) return;
 
         currentOrder.forEach(item => {
             cookedFoodCount[item.food] -= item.quantity;
@@ -313,6 +329,10 @@ export function openNpcModal(template) {
 
         console.log(`Order Served! Remaining Queue: ${npcQueue.length}`);
 
+        if (npcQueue[0].isKiller) {
+            deductHealth();
+        }
+
         decreasePatienceTime();
         decreaseSpawnDelayTime();
         npcsServedCount++;
@@ -320,11 +340,14 @@ export function openNpcModal(template) {
     });
 
     const unServeBtn = document.getElementById('unserve-button');
-    unServeBtn.addEventListener('click',()=>{
+    unServeBtn.addEventListener('click', () => {
         npcQueue[0].status = "served";
-        npcQueue.shift();
 
-        deductHealth();
+        if (!npcQueue[0].isKiller) {
+            deductHealth();
+        }
+
+        npcQueue.shift();
 
         modal.remove();
     })
