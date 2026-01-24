@@ -1,29 +1,26 @@
 import { objectCoordinates } from "./ObjectCoordinates.js";
 import { sprites } from "./SceneCreation.js";
-import { attemptUpgrade, getNextUpgradeForObject, upgrades } from "./ShopStateManagement.js";
+import { attemptSkillUpgrade, attemptUpgrade, getNextUpgradeForObject, getNextUpgradeForSkills, skillNameForUpgrades, skillUpgrades, upgrades } from "./ShopStateManagement.js";
 import { getBalance } from "./Wallet.js";
 
 export const State = {
 
 };
 
-
 export const cookedFoodCount = {
     cookedPatty: 0,
     cookedHotDog: 0
 };
 
-
-
 const spriteSheet = new Image();
 spriteSheet.src = "assets/professional_kitchen_withshadows.png";
 
 function toTitleCase(str) {
-  return str.toLowerCase().split(' ')
-    .map(word => {
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
-    .join(' ');
+    return str.toLowerCase().split(' ')
+        .map(word => {
+            return word.charAt(0).toUpperCase() + word.slice(1);
+        })
+        .join(' ');
 }
 
 //creating the modal with the template
@@ -40,7 +37,7 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
     const canvasMainSprite = document.getElementById('canvas-sprite');
     if (canvasMainSprite) {
         const ctxMainSprite = canvasMainSprite.getContext('2d');
-        drawSpriteOnModal(templateName.slice(0,-1), canvasMainSprite, ctxMainSprite);
+        drawSpriteOnModal(templateName.slice(0, -1), canvasMainSprite, ctxMainSprite);
     }
 
     if (templateName == 'shop') {
@@ -88,9 +85,46 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
 
 
             }
+            for (let skillName in skillUpgrades) {
+                if (skillName === "buyAHeart") continue;
+                console.log(skillName);
+                const currentSkillLvl = player[skillName];
+                if (currentSkillLvl && currentSkillLvl < 4) {
+                    const nextSkillLvl = currentSkillLvl + 1;
+                    const cost = getNextUpgradeForSkills(skillName);
+                    const slotCard = document.createElement('div');
+                    slotCard.id = skillName;
+                    slotCard.className = "shop-card";
+                    slotCard.style.cssText = "border: 1px solid #555; margin: 10px; padding: 10px; background: #333; display: flex; justify-content: space-between; align-items: center;";
+                    slotCard.innerHTML = `
+                        <div>
+                            <h3 style="margin:0; color:#fff">${toTitleCase(skillNameForUpgrades[skillName.trim()])}</h3>
+                            <p style="margin:5px 0; color:#aaa">Level: ${player[skillName]} → ${nextSkillLvl}</p>
+                            <p style="margin:0; color:#4CAF50; font-weight:bold">Price: $${cost}</p>
+                        </div>
+                        <button id="buy-${skillName}" class="buy-btn" style="padding: 8px 16px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px;"> 
+                            Buy 
+                        </button>
+                `;
+                    shopContainer.appendChild(slotCard);
+                    const buyBtn = document.getElementById(`buy-${skillName}`);
+                    buyBtn.onclick = () => {
+                        const result = attemptSkillUpgrade(skillName);
+                        if (result.success) {
+                            console.log("Upgraded!");
+                            updateshopUi();
+                        } else {
+                            console.log(result.msg);
+                            buyBtn.innerText = "No Cash";
+                            setTimeout(() => buyBtn.innerText = "Buy", 1000);
+                        }
+                    };
+
+                }
+            }
+
         }
         updateshopUi();
-
     }
     else if (templateName == 'grillLevel11') {
         const canvasCookedSprite = document.getElementById('cooked-canvas-sprite');
@@ -115,12 +149,12 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
         })
 
 
-        refillSlotsToPreviousState(objectId, unlockedSlots,templateName);
+        refillSlotsToPreviousState(objectId, unlockedSlots, templateName);
         canvasCookedSprite.style.cursor = 'pointer';
 
         canvasCookedSprite.addEventListener('click', () => {
             console.log('clicked cooked patty');
-            addItemsToSlot('cookedPatty', objectId, unlockedSlots,templateName);
+            addItemsToSlot('cookedPatty', objectId, unlockedSlots, templateName);
         })
 
     }
@@ -153,7 +187,7 @@ export function drawSpriteOnModal(spriteName, canvas, ctx) {
 
 }
 
-export function addItemsToSlot(spriteName, objectId, unlockedSlots,templateName) {
+export function addItemsToSlot(spriteName, objectId, unlockedSlots, templateName) {
     const slots = ['slot-1', 'slot-2', 'slot-3', 'slot-4'];
     let targetSlot = null;
     let targetSlotId = null;
@@ -222,14 +256,14 @@ export function addItemsToSlot(spriteName, objectId, unlockedSlots,templateName)
         };
 
         State[objectId][targetSlotId].animationId = requestAnimationFrame((currentTime) =>
-            animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, targetSlotId,templateName)
+            animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, targetSlotId, templateName)
         );
     } else {
         console.log('No empty slots available!');
     }
 }
 
-export function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, targetSlotId,templateName) {
+export function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, targetSlotId, templateName) {
     const elapsed = Math.floor((currentTime - State[objectId][targetSlotId].startTime) / 1000);
     const timeLeft = Math.max(0, objectCoordinates[templateName].cookingTime - elapsed);
 
@@ -247,7 +281,7 @@ export function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId,
 
     if (timeLeft > 0) {
         State[objectId][targetSlotId].animationId = requestAnimationFrame((time) =>
-            animateTimer(time, spriteName, ctx, targetSlot, objectId, targetSlotId,templateName)
+            animateTimer(time, spriteName, ctx, targetSlot, objectId, targetSlotId, templateName)
         );
     } else {
         console.log("cooked food");
@@ -276,7 +310,7 @@ export function updateCookedFoodCount(foodName) {
 }
 
 
-export function refillSlotsToPreviousState(objectId, unlockedSlots,templateName) {
+export function refillSlotsToPreviousState(objectId, unlockedSlots, templateName) {
     const slots = ['slot-1', 'slot-2', 'slot-3', 'slot-4'];
     State[objectId] ??= {};
     for (let i = 0; i < slots.length; i++) {
@@ -286,12 +320,12 @@ export function refillSlotsToPreviousState(objectId, unlockedSlots,templateName)
         let slotId = slots[i];
         const slotCanvas = document.querySelector(`#${slotId}`);
         if (slotCanvas && State[objectId][slotId]) {
-            redrawSlot(slotId, objectId, slotCanvas,templateName);
+            redrawSlot(slotId, objectId, slotCanvas, templateName);
         }
     }
 };
 
-export function redrawSlot(slotId, objectId, slotCanvas,templateName) {
+export function redrawSlot(slotId, objectId, slotCanvas, templateName) {
     const slotData = State[objectId][slotId];
     const ctx = slotCanvas.getContext('2d');
 
@@ -342,7 +376,7 @@ export function redrawSlot(slotId, objectId, slotCanvas,templateName) {
 
         if (timeLeft > 0) {
             slotData.animationId = requestAnimationFrame((currentTime) =>
-                animateTimer(currentTime, slotData.spriteName, ctx, slotCanvas, objectId, slotId,templateName)
+                animateTimer(currentTime, slotData.spriteName, ctx, slotCanvas, objectId, slotId, templateName)
             );
         }
     } else if (slotData.status === 'cooked') {

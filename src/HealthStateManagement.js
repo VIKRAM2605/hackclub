@@ -1,13 +1,47 @@
+import { gameRunning } from "./GameMechanics.js";
 import { showRetryPage } from "./RetryPage.js";
 
 export const health = [1, 1];
 
+const fullHeartSpriteSheet = new Image();
+fullHeartSpriteSheet.src = 'assets/hearttype1.png'
+
+const canvas = document.getElementById('canvas1');
+const ctx = canvas.getContext('2d');
+
+const heartSprite = {
+    fullHeart: { x: 11, y: 14, w: 45, h: 45 },
+}
 
 export function showHealth() {
-    console.log(health);
+    if(gameRunning === false) return;
 
-    //here i wanna render the heart system as heart in canvas 
-    //for now it will console how many hearts left once everything is finished i will update this
+    ctx.imageSmoothingEnabled = false;
+
+    const activeHearts = health.filter(h => h === 1).length;
+
+    const displaySize = 16;
+    const spacing = 2;
+    const startY = 20;
+    const rightMargin = 20;
+
+    const totalHealthBarWidth = (activeHearts * displaySize) + ((activeHearts - 1) * spacing);
+
+    const startX = Math.floor(canvas.width - totalHealthBarWidth - rightMargin);
+    
+    for (let i = 0; i < activeHearts; i++) {
+        const xPos = startX + (i * (displaySize + spacing));
+
+        if (health[i] == 1) {
+            ctx.drawImage(
+                fullHeartSpriteSheet,
+                heartSprite.fullHeart.x, heartSprite.fullHeart.y,
+                heartSprite.fullHeart.w, heartSprite.fullHeart.h,
+                xPos, startY,
+                displaySize, displaySize
+            );
+        }
+    }
 };
 
 export function deductHealth() {
@@ -19,10 +53,9 @@ export function deductHealth() {
         health[lastIndexOfOne] = 0;
     }
     const dead = isDead();
-    if(dead){
+    if (dead) {
         console.log("Player died");
         showRetryPage();
-        //in furture this if block stops the game and trigger the re-try option for now it will just console player is dead
     }
 }
 

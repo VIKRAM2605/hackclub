@@ -166,3 +166,7 @@ export function resumeAllPausedSpills(currentTime) {
         }
     }
 }
+
+export function removeAllActiveSpills(){
+    activeSpills.length = 0;
+}

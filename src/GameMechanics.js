@@ -1,6 +1,7 @@
 import { currentBalance, addBalance } from "./Wallet.js";
 import { pauseAllCoins, randomInt, removeAllCoins, resumeAllCoins, spawncoin } from "./RandomCoinDrops.js";
-import { pauseAllActiveSpills, resumeAllPausedSpills } from "./RandomOilSpillage.js";
+import { pauseAllActiveSpills, removeAllActiveSpills, resumeAllPausedSpills } from "./RandomOilSpillage.js";
+import { showHealth } from "./HealthStateManagement.js";
 
 let spawnInterval = null;
 export let gameRunning = false;
@@ -8,7 +9,7 @@ export function startGame() {
     if (gameRunning) return;
     gameRunning = true;
     currentBalance(0);
-
+    showHealth();
     document.body.addEventListener('click', coinClickHandler);
 
     // Start spawning coins
@@ -47,4 +48,5 @@ export function resumeGame() {
 export function quitGame() {
     pauseGame();
     removeAllCoins();
+    removeAllActiveSpills();
 }

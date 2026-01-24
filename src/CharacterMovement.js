@@ -5,6 +5,7 @@ import { npcConvoTemplate } from "./InteractiveModals.js";
 import { startTimer } from "./TimeCalculation.js";
 import { checkSpillCollision, drawSpills, updateSpills } from "./RandomOilSpillage.js";
 import { gameRunning } from "./GameMechanics.js";
+import { showHealth } from "./HealthStateManagement.js";
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
 
@@ -24,7 +25,7 @@ let lastTime = performance.now();
 // Toggle this to see collision boxes (press 'C' key)
 let debugCollision = false;
 
-let player = {
+export let player = {
     x: 64,
     y: 192,
     width: 20,
@@ -40,7 +41,11 @@ let player = {
     animationSpeed: 18,
     collisionWidth: 12,
     collisionHeight: 16,
-    collisionOffsetY: 8
+    collisionOffsetY: 8,
+    reduceKillerChance:1,
+    increaseCoinDropTime:1,
+    reducePattyCookTime:1,
+    reduceHotDogCookTime:1,
 };
 
 const keys = {
@@ -423,6 +428,8 @@ export function gameLoop(currentTime) {
     renderObject();
 
     drawPlayer();
+
+    showHealth();
 
     drawCollisionBoxes();
 
