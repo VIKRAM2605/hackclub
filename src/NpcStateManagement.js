@@ -2,6 +2,7 @@ import { cookedFoodCount, drawSpriteOnModal } from "./StateManagement.js";
 import { deductHealth, showHealth } from "./HealthStateManagement.js";
 import { getPlayerCollisionBox } from "./CharacterMovement.js";
 import { killerNpcDialogs, normalNpcDialogs } from "./NpcDialogs.js";
+import { gameRunning } from "./GameMechanics.js";
 
 
 let spawnDelayTime = 20000;
@@ -13,7 +14,7 @@ let nextSpawnDelay = 4000 + Math.random() * spawnDelayTime;
 let patience = 25;
 let minPatience = 10;
 
-let npcsServedCount = 0;
+export let npcsServedCount = 0;
 
 let killerChance = 0.05;
 
@@ -48,6 +49,8 @@ const orderWeights = {
 const totalWeight = Object.values(orderWeights).reduce((sum, w) => sum + w, 0);
 
 export function spawnNpc(currentTime) {
+    if(gameRunning === false) return;
+
     const npcId = `npc_${Date.now()}`;
 
     let maxOrdersPerNPC = 1;
@@ -128,6 +131,7 @@ export function getNpcDialog(isKiller, category) {
 
 export function updateNpcQueue(deltaTime) {
     if (npcQueue.length === 0) return;
+    if(gameRunning ===false)return;
 
     for (let i = 0; i < npcQueue.length; i++) {
         const targetX = 500 - (2 * 50);
@@ -170,6 +174,7 @@ export function updateNpcQueue(deltaTime) {
 
 export function updateLeavingNpcs(deltaTime) {
     if (leavingNpcs.length == 0) return;
+    if(gameRunning === false) return;
     const exitTargetX = 600;
     for (let i = leavingNpcs.length - 1; i >= 0; i--) {
         const npc = leavingNpcs[i];
@@ -196,6 +201,7 @@ export function decreasePatienceTime() {
 
 
 export function shouldSpawnNpc(currentTime) {
+    if(gameRunning === false) return;
     return (currentTime - lastSpawnTime) > nextSpawnDelay && queuePointer < 3;
 }
 

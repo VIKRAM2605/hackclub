@@ -7,7 +7,6 @@ export const State = {
 
 };
 
-// export const hotDog = {};
 
 export const cookedFoodCount = {
     cookedPatty: 0,

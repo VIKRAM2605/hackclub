@@ -1,6 +1,7 @@
 import { startGame,pauseGame, resumeGame, quitGame } from "./GameMechanics.js";
 import { hidePauseMenu, hidePauseMenuPage, showPauseMenu, showPauseMenuPage } from "./PauseMenu.js";
 import { removeAllCoins, resumeAllCoins } from "./RandomCoinDrops.js";
+import { pauseAllActiveSpills, resumeAllPausedSpills } from "./RandomOilSpillage.js";
 import { initStartPageButton } from "./ShopPage.js";
 import { showStartPage,hideStartPage } from "./StartPage.js";
 import { displayBalance, hideBalance } from "./Wallet.js";

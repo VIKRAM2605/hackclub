@@ -4,6 +4,7 @@ import { decreasePatienceTime, decreaseSpawnDelayTime, drawQueue, isFirstNpcInta
 import { npcConvoTemplate } from "./InteractiveModals.js";
 import { startTimer } from "./TimeCalculation.js";
 import { checkSpillCollision, drawSpills, updateSpills } from "./RandomOilSpillage.js";
+import { gameRunning } from "./GameMechanics.js";
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
 
@@ -176,7 +177,7 @@ export function drawPlayer() {
 }
 
 export function updatePlayer(slipping) {
-
+    if(gameRunning === false) return;
     if (slipping && player.slipTimer <= 0) {
         player.slipTimer = 60;
     }
