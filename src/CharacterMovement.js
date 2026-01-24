@@ -6,15 +6,14 @@ import { startTimer } from "./TimeCalculation.js";
 import { checkSpillCollision, drawSpills, updateSpills } from "./RandomOilSpillage.js";
 import { gameRunning } from "./GameMechanics.js";
 import { showHealth } from "./HealthStateManagement.js";
+import { showCookedFood } from "./DisplayCookedFood.js";
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
 
-// Ensure canvas width/height attributes match CSS size for sharp rendering
 canvas.width = canvas.offsetWidth;
 canvas.height = canvas.offsetHeight;
 
-//ctx.imageSmoothingEnabled = false;
-
+ctx.imageSmoothingEnabled = false;
 
 canvas.width = 480;
 canvas.height = 292;
@@ -42,10 +41,10 @@ export let player = {
     collisionWidth: 12,
     collisionHeight: 16,
     collisionOffsetY: 8,
-    reduceKillerChance:1,
-    increaseCoinDropTime:1,
-    reducePattyCookTime:1,
-    reduceHotDogCookTime:1,
+    reduceKillerChance: 1,
+    increaseCoinDropTime: 1,
+    reducePattyCookTime: 1,
+    reduceHotDogCookTime: 1,
 };
 
 const keys = {
@@ -182,7 +181,7 @@ export function drawPlayer() {
 }
 
 export function updatePlayer(slipping) {
-    if(gameRunning === false) return;
+    if (gameRunning === false) return;
     if (slipping && player.slipTimer <= 0) {
         player.slipTimer = 60;
     }
@@ -427,9 +426,11 @@ export function gameLoop(currentTime) {
 
     renderObject();
 
-    drawPlayer();
-
     showHealth();
+
+    showCookedFood();
+
+    drawPlayer();
 
     drawCollisionBoxes();
 
@@ -463,7 +464,7 @@ spriteSheet.onload = () => {
 }
 
 function checkAndStart() {
-    if (playerSpriteLoaded && kitchenSpriteLoaded) {
+    if (playerSpriteLoaded && kitchenSpriteLoaded && gameRunning) {
         console.log('Starting game loop!');
         console.log('Press C to toggle collision debug view');
         startTimer();
@@ -547,9 +548,7 @@ document.addEventListener('keyup', (e) => {
 
 export function interactWithObject(obj) {
     if (!obj) return;
-    console.log(obj);
     const { onOpen, } = obj.coords.onInteract;
-    //console.log(template, onOpen);
 
     if (typeof onOpen === "function") {
         onOpen(canvas, ctx, player, obj.coords.unlockedSlots)

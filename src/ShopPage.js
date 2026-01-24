@@ -26,3 +26,17 @@ export function buildStartPageButton(){
     }
 
 }
+
+export function showShopBtn(){
+    const showShopBtn = document.getElementById('main-shop-button-div');
+    if(showShopBtn){
+        showShopBtn.style.display = 'block';
+    }
+}
+
+export function hideShopBtn(){
+    const hideShopBtn = document.getElementById('main-shop-button-div');
+    if(hideShopBtn){
+        hideShopBtn.style.display = 'none';
+    }
+}

@@ -240,13 +240,6 @@ export function drawQueue(ctx) {
             ctx.fillRect(customer.positionX, customer.positionY - 8, 30 * (customer.patience / 25), 4);
         }
     }
-
-    ctx.fillStyle = 'rgba(0,0,0,0.8)';
-    ctx.fillRect(10, 10, 100, 25);
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 14px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText(`Queue: ${npcQueue.length}`, 15, 27);
 }
 
 

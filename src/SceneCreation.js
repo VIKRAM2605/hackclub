@@ -7,7 +7,7 @@ canvas.height = canvas.offsetHeight;
 
 export const tileSize = 32;
 
-const spriteSheet = new Image();
+export const spriteSheet = new Image();
 spriteSheet.src = 'assets/professional_kitchen_withshadows.png';
 
 const doorSpriteSheet = new Image();
