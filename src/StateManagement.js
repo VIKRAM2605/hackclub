@@ -1,11 +1,16 @@
 import { objectCoordinates } from "./ObjectCoordinates.js";
 import { sprites } from "./SceneCreation.js";
-import { attemptSkillUpgrade, attemptUpgrade, getNextUpgradeForObject, getNextUpgradeForSkills, skillNameForUpgrades, skillUpgrades, upgrades } from "./ShopStateManagement.js";
+import { attemptSkillUpgrade, attemptUpgrade, getNextUpgradeForObject, getNextUpgradeForSkills, skillNameForUpgrades, skillSpriteForUpgrades, skillUpgrades, upgrades } from "./ShopStateManagement.js";
 import { getBalance } from "./Wallet.js";
 
 export const State = {
 
 };
+const bgSprite = new Image();
+bgSprite.src = 'assets/shop.png';
+
+const ribbonSprite = new Image();
+ribbonSprite.src = 'assets/ribbon-banners-Photoroom.png'
 
 export const cookedFoodCount = {
     cookedPatty: 0,
@@ -41,6 +46,26 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
     }
 
     if (templateName == 'shop') {
+        const shopCanvas = document.getElementById('shop-bg-canvas');
+        const rect = shopCanvas.getBoundingClientRect();
+
+        if (shopCanvas) {
+            const dpr = window.devicePixelRatio || 1;
+
+            shopCanvas.width = rect.width * dpr;
+            shopCanvas.height = rect.height * dpr;
+
+            const shopctx = shopCanvas.getContext('2d');
+
+            shopctx.scale(dpr, dpr);
+
+            shopctx.imageSmoothingEnabled = false
+            shopctx.drawImage(
+                bgSprite,
+                7, 0, 115, 149,
+                0, 0, rect.width, rect.height
+            )
+        }
         const moneyDisplay = document.getElementById('display-money');
 
         const shopContainer = document.getElementById('shop-items-container');
@@ -52,38 +77,122 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
                 const obj = objectCoordinates[objName];
                 //console.log(objName, obj);
                 if (obj.unlockedSlots && obj.unlockedSlots < 4) {
+
                     const nextLevel = obj.unlockedSlots + 1;
                     const cost = getNextUpgradeForObject(objName);
+
                     const slotCard = document.createElement("div");
                     slotCard.id = objName;
                     slotCard.className = "shop-card";
-                    slotCard.style.cssText = "border: 1px solid #555; margin: 10px; padding: 10px; background: #333; display: flex; justify-content: space-between; align-items: center;";
-                    slotCard.innerHTML = `
-                        <div>
-                            <h3 style="margin:0; color:#fff">${toTitleCase(obj.name.trim())}</h3>
-                            <p style="margin:5px 0; color:#aaa">Level: ${obj.unlockedSlots} → ${nextLevel}</p>
-                            <p style="margin:0; color:#4CAF50; font-weight:bold">Price: $${cost}</p>
-                        </div>
-                        <button id="buy-${objName}" class="buy-btn" style="padding: 8px 16px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px;"> 
-                            Buy 
-                        </button>
-                `
+                    slotCard.style.display = "flex";
+                    slotCard.style.flexDirection = "column";
+                    slotCard.style.gap = "5px";
+                    slotCard.style.margin = "10px";
+                    slotCard.style.alignItems = 'center'
+
+                    const cardScale = 4;
+                    const cardBaseSize = 50;
+
+                    const cardCanvas = document.createElement("canvas");
+                    cardCanvas.id = `object-canvas-${objName}`;
+                    cardCanvas.width = cardBaseSize * cardScale;
+                    cardCanvas.height = cardBaseSize * cardScale;
+                    cardCanvas.style.width = `${cardBaseSize}px`;
+                    cardCanvas.style.height = `${cardBaseSize}px`;
+
+                    const scale = 4;
+                    const width = 50;
+                    const height = 18;
+
+                    const buyCanvas = document.createElement("canvas");
+                    buyCanvas.id = `buy-canvas-${objName}`;
+                    buyCanvas.width = width * scale;
+                    buyCanvas.height = height * scale;
+
+                    buyCanvas.style.width = `${width}px`;
+                    buyCanvas.style.height = `${height}px`;
+                    buyCanvas.style.marginTop = "2px";
+                    buyCanvas.style.cursor = "pointer";
+
+                    slotCard.appendChild(cardCanvas);
+                    slotCard.appendChild(buyCanvas);
                     shopContainer.appendChild(slotCard);
-                    const buyBtn = document.getElementById(`buy-${objName}`);
-                    buyBtn.onclick = () => {
+
+                    const objctx = cardCanvas.getContext('2d');
+
+                    objctx.scale(cardScale, cardScale);
+                    objctx.imageSmoothingEnabled = false;
+
+
+                    objctx.drawImage(
+                        bgSprite,
+                        357, 161, 21, 21,
+                        0, 0, cardBaseSize, cardBaseSize
+                    )
+
+                    const sprite = sprites[objName.slice(0, -1)];
+                    objctx.drawImage(
+                        spriteSheet,
+                        sprite.x, sprite.y, sprite.w, sprite.h,
+                        (cardBaseSize / 2) - (sprite.w / 2), (cardBaseSize / 2) - (sprite.h / 2), sprite.w, sprite.h
+                    )
+
+                    objctx.drawImage(
+                        ribbonSprite,
+                        34, 102, 156, 44,
+                        0, -3, 50, 15
+                    );
+
+                    objctx.fillStyle = "black";
+                    objctx.textAlign = "center";
+                    objctx.textBaseline = "middle";
+                    objctx.font = "bold 5px 'Pixelify Sans', sans-serif";
+
+                    objctx.fillText(toTitleCase(obj.name), 25, 3);
+
+                    const buyctx = buyCanvas.getContext('2d');
+                    buyctx.imageSmoothingEnabled = false;
+                    buyctx.scale(scale, scale);
+
+
+                    buyctx.drawImage(
+                        bgSprite,
+                        99, 186, 26, 14,
+                        0, 0, width, height
+                    )
+
+                    buyctx.fillStyle = "white";
+                    buyctx.textAlign = "center";
+
+                    buyctx.font = "6px 'Pixelify Sans', sans-serif";
+                    buyctx.fillText(`Lvl ${nextLevel}`, width / 2, 7);
+
+
+                    const playerMoney = getBalance();
+                    const canAfford = playerMoney >= cost;
+
+                    if (canAfford) {
+                        buyctx.fillStyle = "#90ee90";
+                    } else {
+                        buyctx.fillStyle = "#ff4444";
+                    }
+
+                    buyctx.font = "bold 6px 'Pixelify Sans', sans-serif";
+                    buyctx.fillText(`$${cost}`, width / 2, 14);
+
+                    buyCanvas.addEventListener('click', () => {
                         const result = attemptUpgrade(objName);
+
                         if (result.success) {
                             console.log("Upgraded!");
                             updateshopUi();
                         } else {
                             console.log(result.msg);
-                            buyBtn.innerText = "No Cash";
-                            setTimeout(() => buyBtn.innerText = "Buy", 1000);
+
                         }
-                    };
+                    }
+                    )
                 };
-
-
             }
             for (let skillName in skillUpgrades) {
                 if (skillName === "buyAHeart") continue;
@@ -92,39 +201,154 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
                 if (currentSkillLvl && currentSkillLvl < 4) {
                     const nextSkillLvl = currentSkillLvl + 1;
                     const cost = getNextUpgradeForSkills(skillName);
-                    const slotCard = document.createElement('div');
+                    const slotCard = document.createElement("div");
                     slotCard.id = skillName;
                     slotCard.className = "shop-card";
-                    slotCard.style.cssText = "border: 1px solid #555; margin: 10px; padding: 10px; background: #333; display: flex; justify-content: space-between; align-items: center;";
-                    slotCard.innerHTML = `
-                        <div>
-                            <h3 style="margin:0; color:#fff">${toTitleCase(skillNameForUpgrades[skillName.trim()])}</h3>
-                            <p style="margin:5px 0; color:#aaa">Level: ${player[skillName]} → ${nextSkillLvl}</p>
-                            <p style="margin:0; color:#4CAF50; font-weight:bold">Price: $${cost}</p>
-                        </div>
-                        <button id="buy-${skillName}" class="buy-btn" style="padding: 8px 16px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px;"> 
-                            Buy 
-                        </button>
-                `;
+                    slotCard.style.display = "flex";
+                    slotCard.style.flexDirection = "column";
+                    slotCard.style.gap = "5px";
+                    slotCard.style.margin = "10px";
+                    slotCard.style.alignItems = 'center'
+
+                    const cardScale = 4;
+                    const cardBaseSize = 50;
+
+                    const cardCanvas = document.createElement("canvas");
+                    cardCanvas.id = `object-canvas-${skillName}`;
+                    cardCanvas.width = cardBaseSize * cardScale;
+                    cardCanvas.height = cardBaseSize * cardScale;
+                    cardCanvas.style.width = `${cardBaseSize}px`;
+                    cardCanvas.style.height = `${cardBaseSize}px`;
+
+                    const scale = 4;
+                    const width = 50;
+                    const height = 18;
+
+                    const buyCanvas = document.createElement("canvas");
+                    buyCanvas.id = `buy-canvas-${skillName}`;
+                    buyCanvas.width = width * scale;
+                    buyCanvas.height = height * scale;
+
+                    buyCanvas.style.width = `${width}px`;
+                    buyCanvas.style.height = `${height}px`;
+                    buyCanvas.style.marginTop = "2px";
+                    buyCanvas.style.cursor = "pointer";
+
+                    slotCard.appendChild(cardCanvas);
+                    slotCard.appendChild(buyCanvas);
                     shopContainer.appendChild(slotCard);
-                    const buyBtn = document.getElementById(`buy-${skillName}`);
-                    buyBtn.onclick = () => {
-                        const result = attemptSkillUpgrade(skillName);
+
+                    const objctx = cardCanvas.getContext('2d');
+
+                    objctx.scale(cardScale, cardScale);
+                    objctx.imageSmoothingEnabled = false;
+
+
+                    objctx.drawImage(
+                        bgSprite,
+                        357, 161, 21, 21,
+                        0, 0, cardBaseSize, cardBaseSize
+                    )
+                    const sprite = skillSpriteForUpgrades[skillName];
+                    objctx.drawImage(
+                        sprite.img,
+                        sprite.x,sprite.y,sprite.w,sprite.h,
+                        (cardBaseSize / 2) - (sprite.sw / 2), (cardBaseSize / 2) - (sprite.sh / 2), sprite.sw, sprite.sh
+
+                    )
+
+                    objctx.drawImage(
+                        ribbonSprite,
+                        34, 102, 156, 44,
+                        0, -3, 50, 15
+                    );
+
+                    objctx.fillStyle = "black";
+                    objctx.textAlign = "center";
+                    objctx.textBaseline = "middle";
+                    objctx.font = "bold 5px 'Pixelify Sans', sans-serif";
+
+                    objctx.fillText(toTitleCase(skillNameForUpgrades[skillName]), 25, 3);
+
+                    const buyctx = buyCanvas.getContext('2d');
+                    buyctx.imageSmoothingEnabled = false;
+                    buyctx.scale(scale, scale);
+
+
+                    buyctx.drawImage(
+                        bgSprite,
+                        99, 186, 26, 14,
+                        0, 0, width, height
+                    )
+
+                    buyctx.fillStyle = "white";
+                    buyctx.textAlign = "center";
+
+                    buyctx.font = "6px 'Pixelify Sans', sans-serif";
+                    buyctx.fillText(`Lvl ${nextSkillLvl}`, width / 2, 7);
+
+
+                    const playerMoney = getBalance();
+                    const canAfford = playerMoney >= cost;
+
+                    if (canAfford) {
+                        buyctx.fillStyle = "#90ee90";
+                    } else {
+                        buyctx.fillStyle = "#ff4444";
+                    }
+
+                    buyctx.font = "bold 6px 'Pixelify Sans', sans-serif";
+                    buyctx.fillText(`$${cost}`, width / 2, 14);
+
+                    buyCanvas.addEventListener('click', () => {
+                        const result = attemptSkillUpgrade(objName);
+
                         if (result.success) {
                             console.log("Upgraded!");
                             updateshopUi();
                         } else {
                             console.log(result.msg);
-                            buyBtn.innerText = "No Cash";
-                            setTimeout(() => buyBtn.innerText = "Buy", 1000);
+
                         }
-                    };
+                    }
+                    )
 
                 }
             }
 
         }
         updateshopUi();
+
+        const closeCanvas = document.getElementById('close-modal');
+
+        const closectx = closeCanvas.getContext('2d');
+
+        const closeW = 35;
+        const closeH = 20;
+
+        const dpr = window.devicePixelRatio || 1;
+        closeCanvas.width = closeW * dpr;
+        closeCanvas.height = closeH * dpr;
+        closeCanvas.style.width = `${closeW}px`;
+        closeCanvas.style.height = `${closeH}px`;
+        closeCanvas.style.cursor = "pointer";
+
+        const spriteW = 26;
+        const x = rect.width - 26;
+
+        closectx.drawImage(
+            bgSprite,
+            64, 160, 26, 16,
+            x, 0, 26, 16
+        )
+
+        closeCanvas.addEventListener('click', () => {
+            modal.remove();
+        })
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') modal.remove();
+        });
     }
     else if (templateName == 'grillLevel11') {
         const canvasCookedSprite = document.getElementById('cooked-canvas-sprite');
@@ -159,15 +383,6 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
 
     }
 
-    const closeBtn = document.getElementById('close-modal');
-
-    closeBtn.addEventListener('click', () => {
-        modal.remove();
-    })
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') modal.remove();
-    });
 }
 
 

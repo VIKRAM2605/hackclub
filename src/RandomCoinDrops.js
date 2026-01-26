@@ -1,10 +1,28 @@
 let activeCoins = []
 
+const coinSpriteSheet = new Image();
+coinSpriteSheet.src = 'assets/coin1-Photoroom.png';
 //function to spawn coin
 export function spawncoin() {
-     const coin = document.createElement('div');
+     const coin = document.createElement('canvas');
+
+     coin.width = 32;
+     coin.height = 32;
+
+     coin.style.width = '8px';
+     coin.style.height = '8px';
+     coin.id = `coin-canvas-${Date.now()}`;
      coin.className = 'coin';
-     coin.src = '../assests/coin.webp'
+
+     const coinctx = coin.getContext('2d');
+
+     coinctx.imageSmoothingEnabled = false;
+
+     coinctx.drawImage(
+          coinSpriteSheet,
+          215, 228, 212, 195,
+          0, 0, 32, 32
+     )
 
      const centerX = 400;
      const centerY = 120;

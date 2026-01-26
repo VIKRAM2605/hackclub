@@ -179,70 +179,73 @@ export const npcConvoTemplate = `
 `;
 
 export const shopTemplate = `
+<style>
+    #shop-items-scroll-container::-webkit-scrollbar {
+        display: none;
+    }
+    #shop-items-scroll-container {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+</style>
+
 <div id="shop-modal" style="
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 400px;
-    height: 500px;
-    background: #1e1e1e;
+    width: 300px;
+    max-height: 60vh;
+    height:auto;
     color: #e0e0e0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    border-radius: 12px;
-    border: 1px solid #333;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.9);
     display: flex;
     flex-direction: column;
     z-index: 1000;
     overflow: hidden;
+    background: transparent;
 ">
+    <canvas id="shop-bg-canvas" width="200" height="200" style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: -1;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+    "></canvas>
+
     <div style="
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
-        padding: 15px 20px;
-        background: #252525;
-        border-bottom: 1px solid #333;
+        flex-shrink: 0;
     ">
-        <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Upgrade Store</h2>
-        <button id="close-modal" style="
-            background: none;
-            border: none;
-            color: #888;
-            font-size: 24px;
-            cursor: pointer;
-            line-height: 1;
-        " onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#888'">
-            &times;
-        </button>
+        <canvas id="close-modal" style="
+            cursor: pointer;"
+        </canvas>
     </div>
-
-    <div style="padding: 20px; flex-grow: 1; display: flex; flex-direction: column; gap: 15px;">
-        
-        <div style="
-            background: #2a2a2a;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #333;
+    <div style="
+            padding-top:5px;
+            padding-right: 20px;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
+            flex-shrink: 0;
+            z-index:10;
         ">
-            <span style="color: #aaa; font-size: 14px; font-weight: bold;">TOTAL FUNDS</span>
-            <span style="font-size: 24px; font-weight: bold; color: #4CAF50;">
+            <span style="font:6px'Pixelify Sans', sans-serif; font-size: 8px; font-weight: bold; color: black;">
                 $ <span id="display-money">0.00</span>
             </span>
-        </div>
+    </div> 
 
-        <div style="height: 1px; background: #333; margin: 5px 0;"></div>
+    <div style="padding: 20px; padding-top:0px; flex-grow: 1; display: flex; flex-direction: column; gap: 15px; position: relative;min-height: 0;">
 
-        <div style="flex-grow: 1; overflow-y: auto;">
-            <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #666;">AVAILABLE EQUIPMENT</h3>
-            
+        <div id="shop-items-scroll-container" style="flex-grow: 1; overflow-y: auto;padding-right: 5px;">           
             <div id="shop-items-container" style="
                 display: flex; 
-                flex-direction: column; 
+                flex-direction: row; 
+                flex-wrap: wrap;
                 gap: 10px;
             ">
             </div>

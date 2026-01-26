@@ -8,7 +8,7 @@ export const objectCoordinates = {
         offsetX: 0, offsetY: 0,
         unlockedSlots:1,
         interactable: true,
-        name:'grill station',
+        name:'patty stn',
         cookingTime:10,
         onInteract: {
             onOpen:(canvas,ctx,player,unlockedSlots)=>{

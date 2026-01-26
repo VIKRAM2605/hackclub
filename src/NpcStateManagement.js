@@ -40,7 +40,7 @@ const npcSprites = {
     }
 };
 const orderWeights = {
-    'cookedPatty': 0.4,
+    'cookedPatty': 0.5,
     'cookedHotDog': 0.3,
     // 'cookedBurger': 0.2,
     // 'fries': 0.1,
@@ -269,7 +269,9 @@ export function isFirstNpcIntaractable(x, y, maxDistance = 60) {
 
 export function openNpcModal(template) {
     if (!template || !npcQueue[0] || npcQueue[0].status !== "ordering") return;
-    const modal = document.createElement('div');
+    let modal = document.getElementById('main-modal');
+    if(modal)return;
+    modal = document.createElement('div');
     modal.id = "main-modal";
     modal.innerHTML = template;
     document.getElementById('game-container').appendChild(modal);

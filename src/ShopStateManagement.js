@@ -37,12 +37,41 @@ export const skillUpgrades = {
 
 }
 export const skillNameForUpgrades = {
-    reduceKillerChance : "reduce killer chance",
-    increaseCoinDropTime : "increase coin drop time",
-    reducePattyCookTime : "reduce patty cook time",
-    reduceHotDogCookTime : "reduce hotdog cook time",
-    buyAHeart : "revive a heart",
+    reduceKillerChance: "killer chance",
+    increaseCoinDropTime: "coin drop",
+    reducePattyCookTime: "patty cook",
+    reduceHotDogCookTime: "hotdog cook",
+    buyAHeart: "heart",
 }
+
+export const skillSpriteForUpgrades = {
+    reduceKillerChance: {
+        img: new Image(),
+        x: 76, y: 59, w: 111, h: 147, sw: 32, sh: 32
+    },
+    increaseCoinDropTime: {
+        img: new Image(),
+        x: 215, y: 228, w: 212, h: 195, sw: 32, sh: 32
+    },
+    reducePattyCookTime: {
+        img: new Image(),
+        x: 196, y: 39, w: 887, h: 1202, sw: 32, sh: 38
+    },
+    reduceHotDogCookTime: {
+        img: new Image(),
+        x: 196, y: 39, w: 887, h: 1202, sw: 32, sh: 38
+    },
+    buyAHeart: {
+        img: new Image(),
+        x: 11, y: 14, w: 42, h: 39, sw: 32, sh: 32
+    }
+};
+
+skillSpriteForUpgrades.reduceKillerChance.img.src = 'assets/killer-Photoroom.png';
+skillSpriteForUpgrades.increaseCoinDropTime.img.src = 'assets/coin1-Photoroom.png';
+skillSpriteForUpgrades.reducePattyCookTime.img.src = 'assets/timer-Photoroom.png';
+skillSpriteForUpgrades.reduceHotDogCookTime.img.src = 'assets/timer-Photoroom.png';
+skillSpriteForUpgrades.buyAHeart.img.src = 'assets/hearttype1.png';
 
 let maxSlots = 4;
 
