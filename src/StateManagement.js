@@ -7,7 +7,7 @@ export const State = {
 
 };
 const bgSprite = new Image();
-bgSprite.src = 'assets/shop.png';
+bgSprite.src = 'assets/Shop.png';
 
 const ribbonSprite = new Image();
 ribbonSprite.src = 'assets/ribbon-banners-Photoroom.png'
