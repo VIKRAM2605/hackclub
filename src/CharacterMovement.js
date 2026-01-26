@@ -30,13 +30,17 @@ export let player = {
     width: 20,
     height: 38,
     spriteName: 'player',
-    speed: 0.5,
+    speed: 0.09,
+    slipTimer: 0,
+    slipDuration: 500,
     direction: 'right',
     isMoving: false,
     isSlipping: false,
     slipTimer: 0,
     frameIndex: 0,
     frameCounter: 0,
+    frameTimer: 0,
+    frameInterval: 100,
     animationSpeed: 18,
     collisionWidth: 12,
     collisionHeight: 16,
@@ -180,29 +184,30 @@ export function drawPlayer() {
     ctx.restore();
 }
 
-export function updatePlayer(slipping) {
+export function updatePlayer(slipping, deltaTime) {
     if (gameRunning === false) return;
     if (slipping && player.slipTimer <= 0) {
-        player.slipTimer = 60;
+        player.slipTimer = player.slipDuration;
     }
 
     if (player.slipTimer > 0) {
         player.isSlipping = true;
-        player.slipTimer--;
+        player.slipTimer -= deltaTime;
     } else {
         player.isSlipping = false;
+        player.slipTimer = 0;
     }
 
     let moveX = 0;
     let moveY = 0;
 
     if (player.isSlipping) {
-        const slideForce = 1.0;
+        const slideMultiplier = 1;
         switch (player.direction) {
-            case 'left': moveX = -slideForce; break;
-            case 'right': moveX = slideForce; break;
-            case 'up': moveY = -slideForce; break;
-            case 'down': moveY = slideForce; break;
+            case 'left': moveX = -1 * slideMultiplier; break;
+            case 'right': moveX = 1 * slideMultiplier; break;
+            case 'up': moveY = -1 * slideMultiplier; break;
+            case 'down': moveY = 1 * slideMultiplier; break;
         }
         player.isMoving = true;
     } else {
@@ -223,10 +228,10 @@ export function updatePlayer(slipping) {
             moveY *= 0.707;
         }
 
-        const currentSpeed = player.speed;
+        const distance = player.speed * deltaTime;
 
-        const stepX = moveX * currentSpeed;
-        const stepY = moveY * currentSpeed;
+        const stepX = moveX * distance;
+        const stepY = moveY * distance;
 
         const newX = player.x + stepX;
         const newY = player.y + stepY;
@@ -258,22 +263,22 @@ export function updatePlayer(slipping) {
             else if (moveY > 0) player.direction = 'down';
         }
 
-        player.frameCounter++;
+        player.frameTimer += deltaTime;
 
-        let currentAnimationArray = player.isSlipping ? sprites.player.slip : sprites.player.walk;
+        const currentInterval = player.isSlipping ? player.frameInterval / 1.5 : player.frameInterval;
 
-        const frameCount = currentAnimationArray.length || 1;
+        if (player.frameTimer >= currentInterval) {
+            player.frameTimer = 0;
 
-        const animSpeed = player.isSlipping ? player.animationSpeed * 1.5 : player.animationSpeed;
+            let currentAnimationArray = player.isSlipping ? sprites.player.slip : sprites.player.walk;
+            const frameCount = currentAnimationArray.length || 1;
 
-        if (player.frameCounter >= animSpeed) {
-            player.frameCounter = 0;
             player.frameIndex = (player.frameIndex + 1) % frameCount;
         }
     }
     else {
         player.frameIndex = 0;
-        player.frameCounter = 0;
+        player.frameTimer = 0;
     }
 }
 
@@ -416,7 +421,7 @@ export function gameLoop(currentTime) {
 
     const isSlipping = checkSpillCollision(player.x, player.y);
 
-    updatePlayer(isSlipping);
+    updatePlayer(isSlipping, deltaTime);
 
     drawFloor();
 
