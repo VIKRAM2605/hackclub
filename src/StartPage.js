@@ -1,5 +1,6 @@
 import { handleStartGame } from "./Main.js";
 import { hidePauseMenu } from "./PauseMenu.js";
+import { showSettingsPage } from "./Settings.js";
 
 const settingsSprite = new Image();
 settingsSprite.src = 'assets/Settings.png';
@@ -50,7 +51,7 @@ export async function showStartPage() {
 
     const startPageBgCanvas = document.createElement('canvas');
 
-    const scale = 3;
+    const scale = 6;
     const sourceW = 98;
     const sourceH = 101;
 
@@ -72,7 +73,6 @@ export async function showStartPage() {
     startPageBgctx.mozImageSmoothingEnabled = false;
     startPageBgctx.webkitImageSmoothingEnabled = false;
 
-    const btnScale = 3;
     const sBtnW = 42;
     const sBtnH = 15;
     const btnX = (sourceW / 2) - (sBtnW / 2);
@@ -96,18 +96,33 @@ export async function showStartPage() {
             btnX, btnY, sBtnW, sBtnH
         );
 
+        startPageBgctx.drawImage(
+            buttonsSprite,
+            147, 113, sBtnW, sBtnH,
+            btnX, btnY + 20, sBtnW, sBtnH
+        )
+
         startPageBgctx.restore();
 
-        startPageBgctx.fillStyle = "white";
+        startPageBgctx.fillStyle = "black";
 
-        const textX = (btnX + (sBtnW / 2)) * scale;
-        const textY = (btnY + (sBtnH / 2) + 0.5) * scale;
+        let textX = (btnX + (sBtnW / 2)) * scale;
+        let textY = (btnY + (sBtnH / 2) + 0.5) * scale;
 
         startPageBgctx.font = `bold ${6 * scale}px 'Pixelify Sans', sans-serif`;
         startPageBgctx.textAlign = "center";
         startPageBgctx.textBaseline = "middle";
 
-        startPageBgctx.fillText("START", textX, textY);
+        startPageBgctx.fillText("Start", textX, textY);
+
+        textY = (btnY + 20 + (sBtnH / 2) + 0.5) * scale;
+
+        startPageBgctx.font = `bold ${6 * scale}px 'Pixelify Sans', sans-serif`;
+        startPageBgctx.textAlign = "center";
+        startPageBgctx.textBaseline = "middle";
+
+        startPageBgctx.fillText("Settings", textX, textY);
+
     };
 
     startPageBgCanvas.addEventListener('click', (event) => {
@@ -118,8 +133,11 @@ export async function showStartPage() {
 
         if (mouseX >= btnX && mouseX <= btnX + sBtnW &&
             mouseY >= btnY && mouseY <= btnY + sBtnH) {
-            console.log("Start Button Clicked!");
             handleStartGame();
+        }
+        if (mouseX >= btnX && mouseX <= btnX + sBtnW &&
+            mouseY >= btnY + 20 && mouseY <= btnY + sBtnH + 20) {
+                showSettingsPage('start')
         }
     });
 
@@ -129,8 +147,13 @@ export async function showStartPage() {
         const mouseX = (event.clientX - rect.left) / scale;
         const mouseY = (event.clientY - rect.top) / scale;
 
-        if (mouseX >= btnX && mouseX <= btnX + sBtnW &&
-            mouseY >= btnY && mouseY <= btnY + sBtnH) {
+        const onStartBtn = mouseX >= btnX && mouseX <= btnX + sBtnW &&
+            mouseY >= btnY && mouseY <= btnY + sBtnH;
+
+        const onSettingsBtn = mouseX >= btnX && mouseX <= btnX + sBtnW &&
+            mouseY >= btnY + 20 && mouseY <= btnY + 20 + sBtnH;
+
+        if (onStartBtn || onSettingsBtn) {
             startPageBgCanvas.style.cursor = 'pointer';
         } else {
             startPageBgCanvas.style.cursor = 'default';
