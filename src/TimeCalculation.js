@@ -19,5 +19,10 @@ export function formatTime(milliseconds) {
     const padMin = minutes < 10 ? '0' + minutes : minutes;
     const padSec = seconds < 10 ? '0' + seconds : seconds;
 
-    return `${minutes}:${seconds}`;
+    return `${minutes}m:${seconds}s`;
+}
+
+export function playTimeTillNow(){
+    const timeSpent = Date.now() - startTime;
+    return formatTime(timeSpent); 
 }

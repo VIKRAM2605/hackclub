@@ -10,7 +10,10 @@ const bgSprite = new Image();
 bgSprite.src = 'assets/Shop.png';
 
 const ribbonSprite = new Image();
-ribbonSprite.src = 'assets/ribbon-banners-Photoroom.png'
+ribbonSprite.src = 'assets/ribbon-banners-Photoroom.png';
+
+const settingsSprite = new Image();
+settingsSprite.src = 'assets/Settings.png';
 
 export const cookedFoodCount = {
     cookedPatty: 0,
@@ -20,12 +23,40 @@ export const cookedFoodCount = {
 const spriteSheet = new Image();
 spriteSheet.src = "assets/professional_kitchen_withshadows.png";
 
-function toTitleCase(str) {
+export function toTitleCase(str) {
     return str.toLowerCase().split(' ')
         .map(word => {
             return word.charAt(0).toUpperCase() + word.slice(1);
         })
         .join(' ');
+}
+
+export function setupCanvas(canvas, sourceW, sourceH) {
+
+    const dpr = window.devicePixelRatio || 1;
+    const scale = 4;
+
+    const logicalW = sourceW * scale;
+    const logicalH = sourceH * scale;
+
+    canvas.width = logicalW * dpr;
+    canvas.height = logicalH * dpr;
+
+    canvas.style.width = `${logicalW}px`;
+    canvas.style.height = `${logicalH}px`
+
+    const ctx = canvas.getContext('2d');
+
+    ctx.scale(dpr, dpr);
+
+    ctx.scale(scale, scale);
+
+    ctx.imageSmoothingEnabled = false;
+    ctx.mozImageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+
+
+    return ctx;
 }
 
 //creating the modal with the template
@@ -46,24 +77,38 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
     }
 
     if (templateName == 'shop') {
+
+        const shopModal = document.getElementById('shop-modal');
+
+        Object.assign(shopModal.style, {
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            zIndex: '1000',
+            cursor: 'default'
+        });
+
         const shopCanvas = document.getElementById('shop-bg-canvas');
+
         const rect = shopCanvas.getBoundingClientRect();
 
         if (shopCanvas) {
-            const dpr = window.devicePixelRatio || 1;
 
-            shopCanvas.width = rect.width * dpr;
-            shopCanvas.height = rect.height * dpr;
+            const sourceW = 98;
+            const sourceH = 149;
 
-            const shopctx = shopCanvas.getContext('2d');
+            const shopctx = setupCanvas(shopCanvas, sourceW, sourceH);
 
-            shopctx.scale(dpr, dpr);
-
-            shopctx.imageSmoothingEnabled = false
             shopctx.drawImage(
-                bgSprite,
-                7, 0, 115, 149,
-                0, 0, rect.width, rect.height
+                settingsSprite,
+                7, 0, sourceW, sourceH,
+                0, 0, sourceW, sourceH
             )
         }
         const moneyDisplay = document.getElementById('display-money');
@@ -73,9 +118,10 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
         const updateshopUi = () => {
             moneyDisplay.innerText = getBalance().toFixed(2);
             shopContainer.innerHTML = '';
+            
             for (let objName in objectCoordinates) {
                 const obj = objectCoordinates[objName];
-                //console.log(objName, obj);
+                
                 if (obj.unlockedSlots && obj.unlockedSlots < 4) {
 
                     const nextLevel = obj.unlockedSlots + 1;
@@ -88,29 +134,23 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
                     slotCard.style.flexDirection = "column";
                     slotCard.style.gap = "5px";
                     slotCard.style.margin = "10px";
-                    slotCard.style.alignItems = 'center'
+                    slotCard.style.alignItems = 'center';
 
-                    const cardScale = 4;
-                    const cardBaseSize = 50;
-
+                    const cardBaseSize = 50; 
+                    
                     const cardCanvas = document.createElement("canvas");
                     cardCanvas.id = `object-canvas-${objName}`;
-                    cardCanvas.width = cardBaseSize * cardScale;
-                    cardCanvas.height = cardBaseSize * cardScale;
-                    cardCanvas.style.width = `${cardBaseSize}px`;
-                    cardCanvas.style.height = `${cardBaseSize}px`;
+                    
+                    const objctx = setupCanvas(cardCanvas, cardBaseSize, cardBaseSize);
 
-                    const scale = 4;
-                    const width = 50;
-                    const height = 18;
+                    const btnWidth = 50;
+                    const btnHeight = 18;
 
                     const buyCanvas = document.createElement("canvas");
                     buyCanvas.id = `buy-canvas-${objName}`;
-                    buyCanvas.width = width * scale;
-                    buyCanvas.height = height * scale;
+                    
+                    const buyctx = setupCanvas(buyCanvas, btnWidth, btnHeight);
 
-                    buyCanvas.style.width = `${width}px`;
-                    buyCanvas.style.height = `${height}px`;
                     buyCanvas.style.marginTop = "2px";
                     buyCanvas.style.cursor = "pointer";
 
@@ -118,24 +158,20 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
                     slotCard.appendChild(buyCanvas);
                     shopContainer.appendChild(slotCard);
 
-                    const objctx = cardCanvas.getContext('2d');
-
-                    objctx.scale(cardScale, cardScale);
-                    objctx.imageSmoothingEnabled = false;
-
-
+                    
                     objctx.drawImage(
                         bgSprite,
-                        357, 161, 21, 21,
+                        357, 161, 21, 21, 
                         0, 0, cardBaseSize, cardBaseSize
-                    )
+                    );
 
                     const sprite = sprites[objName.slice(0, -1)];
                     objctx.drawImage(
                         spriteSheet,
                         sprite.x, sprite.y, sprite.w, sprite.h,
-                        (cardBaseSize / 2) - (sprite.w / 2), (cardBaseSize / 2) - (sprite.h / 2), sprite.w, sprite.h
-                    )
+                        (cardBaseSize / 2) - (sprite.w / 2), (cardBaseSize / 2) - (sprite.h / 2), 
+                        sprite.w, sprite.h
+                    );
 
                     objctx.drawImage(
                         ribbonSprite,
@@ -147,60 +183,47 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
                     objctx.textAlign = "center";
                     objctx.textBaseline = "middle";
                     objctx.font = "bold 5px 'Pixelify Sans', sans-serif";
-
-                    objctx.fillText(toTitleCase(obj.name), 25, 3);
-
-                    const buyctx = buyCanvas.getContext('2d');
-                    buyctx.imageSmoothingEnabled = false;
-                    buyctx.scale(scale, scale);
+                    objctx.fillText(toTitleCase(obj.name), cardBaseSize / 2, 3);
 
 
                     buyctx.drawImage(
                         bgSprite,
                         99, 186, 26, 14,
-                        0, 0, width, height
-                    )
+                        0, 0, btnWidth, btnHeight
+                    );
 
                     buyctx.fillStyle = "white";
                     buyctx.textAlign = "center";
-
                     buyctx.font = "6px 'Pixelify Sans', sans-serif";
-                    buyctx.fillText(`Lvl ${nextLevel}`, width / 2, 7);
-
+                    
+                    buyctx.fillText(`Lvl ${nextLevel}`, btnWidth / 2, 7);
 
                     const playerMoney = getBalance();
                     const canAfford = playerMoney >= cost;
-
-                    if (canAfford) {
-                        buyctx.fillStyle = "#90ee90";
-                    } else {
-                        buyctx.fillStyle = "#ff4444";
-                    }
-
+                    buyctx.fillStyle = canAfford ? "#90ee90" : "#ff4444";
                     buyctx.font = "bold 6px 'Pixelify Sans', sans-serif";
-                    buyctx.fillText(`$${cost}`, width / 2, 14);
+                    buyctx.fillText(`$${cost}`, btnWidth / 2, 14);
 
                     buyCanvas.addEventListener('click', () => {
                         const result = attemptUpgrade(objName);
-
                         if (result.success) {
                             console.log("Upgraded!");
                             updateshopUi();
                         } else {
                             console.log(result.msg);
-
                         }
-                    }
-                    )
+                    });
                 };
             }
+
             for (let skillName in skillUpgrades) {
                 if (skillName === "buyAHeart") continue;
-                console.log(skillName);
+                
                 const currentSkillLvl = player[skillName];
                 if (currentSkillLvl && currentSkillLvl < 4) {
                     const nextSkillLvl = currentSkillLvl + 1;
                     const cost = getNextUpgradeForSkills(skillName);
+                    
                     const slotCard = document.createElement("div");
                     slotCard.id = skillName;
                     slotCard.className = "shop-card";
@@ -208,29 +231,23 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
                     slotCard.style.flexDirection = "column";
                     slotCard.style.gap = "5px";
                     slotCard.style.margin = "10px";
-                    slotCard.style.alignItems = 'center'
+                    slotCard.style.alignItems = 'center';
 
-                    const cardScale = 4;
                     const cardBaseSize = 50;
 
                     const cardCanvas = document.createElement("canvas");
                     cardCanvas.id = `object-canvas-${skillName}`;
-                    cardCanvas.width = cardBaseSize * cardScale;
-                    cardCanvas.height = cardBaseSize * cardScale;
-                    cardCanvas.style.width = `${cardBaseSize}px`;
-                    cardCanvas.style.height = `${cardBaseSize}px`;
+                    
+                    const objctx = setupCanvas(cardCanvas, cardBaseSize, cardBaseSize);
 
-                    const scale = 4;
-                    const width = 50;
-                    const height = 18;
+                    const btnWidth = 50;
+                    const btnHeight = 18;
 
                     const buyCanvas = document.createElement("canvas");
                     buyCanvas.id = `buy-canvas-${skillName}`;
-                    buyCanvas.width = width * scale;
-                    buyCanvas.height = height * scale;
+                    
+                    const buyctx = setupCanvas(buyCanvas, btnWidth, btnHeight);
 
-                    buyCanvas.style.width = `${width}px`;
-                    buyCanvas.style.height = `${height}px`;
                     buyCanvas.style.marginTop = "2px";
                     buyCanvas.style.cursor = "pointer";
 
@@ -238,24 +255,19 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
                     slotCard.appendChild(buyCanvas);
                     shopContainer.appendChild(slotCard);
 
-                    const objctx = cardCanvas.getContext('2d');
-
-                    objctx.scale(cardScale, cardScale);
-                    objctx.imageSmoothingEnabled = false;
-
-
                     objctx.drawImage(
                         bgSprite,
                         357, 161, 21, 21,
                         0, 0, cardBaseSize, cardBaseSize
-                    )
+                    );
+                    
                     const sprite = skillSpriteForUpgrades[skillName];
                     objctx.drawImage(
                         sprite.img,
-                        sprite.x,sprite.y,sprite.w,sprite.h,
-                        (cardBaseSize / 2) - (sprite.sw / 2), (cardBaseSize / 2) - (sprite.sh / 2), sprite.sw, sprite.sh
-
-                    )
+                        sprite.x, sprite.y, sprite.w, sprite.h,
+                        (cardBaseSize / 2) - (sprite.sw / 2), (cardBaseSize / 2) - (sprite.sh / 2), 
+                        sprite.sw, sprite.sh
+                    );
 
                     objctx.drawImage(
                         ribbonSprite,
@@ -267,55 +279,36 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
                     objctx.textAlign = "center";
                     objctx.textBaseline = "middle";
                     objctx.font = "bold 5px 'Pixelify Sans', sans-serif";
-
                     objctx.fillText(toTitleCase(skillNameForUpgrades[skillName]), 25, 3);
-
-                    const buyctx = buyCanvas.getContext('2d');
-                    buyctx.imageSmoothingEnabled = false;
-                    buyctx.scale(scale, scale);
-
 
                     buyctx.drawImage(
                         bgSprite,
                         99, 186, 26, 14,
-                        0, 0, width, height
-                    )
+                        0, 0, btnWidth, btnHeight
+                    );
 
                     buyctx.fillStyle = "white";
                     buyctx.textAlign = "center";
-
                     buyctx.font = "6px 'Pixelify Sans', sans-serif";
-                    buyctx.fillText(`Lvl ${nextSkillLvl}`, width / 2, 7);
-
+                    buyctx.fillText(`Lvl ${nextSkillLvl}`, btnWidth / 2, 7);
 
                     const playerMoney = getBalance();
                     const canAfford = playerMoney >= cost;
-
-                    if (canAfford) {
-                        buyctx.fillStyle = "#90ee90";
-                    } else {
-                        buyctx.fillStyle = "#ff4444";
-                    }
-
+                    buyctx.fillStyle = canAfford ? "#90ee90" : "#ff4444";
                     buyctx.font = "bold 6px 'Pixelify Sans', sans-serif";
-                    buyctx.fillText(`$${cost}`, width / 2, 14);
+                    buyctx.fillText(`$${cost}`, btnWidth / 2, 14);
 
                     buyCanvas.addEventListener('click', () => {
-                        const result = attemptSkillUpgrade(objName);
-
+                        const result = attemptSkillUpgrade(skillName);
                         if (result.success) {
                             console.log("Upgraded!");
                             updateshopUi();
                         } else {
                             console.log(result.msg);
-
                         }
-                    }
-                    )
-
+                    });
                 }
             }
-
         }
         updateshopUi();
 

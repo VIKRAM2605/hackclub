@@ -1,9 +1,4 @@
-const canvas = document.getElementById('canvas1');
-const ctx = canvas.getContext('2d');
-
-canvas.width = canvas.offsetWidth;
-canvas.height = canvas.offsetHeight;
-
+import { baseH, baseW, canvas, ctx } from './CharacterMovement.js';
 
 export const tileSize = 32;
 
@@ -35,16 +30,12 @@ const doorSprite = {
     openDoorType1: { x: 208, y: 292, w: 320, h: 69, sw: 320, sh: 69 },
 };
 
-
 export let kitchenSpriteLoaded = false;
 
 export function drawDoor(spriteName, col, row) {
     const sprite = doorSprite[spriteName.slice(0, -1)];
-    const tileSize = 32;
     const x = Math.round(col * tileSize + (tileSize - sprite.w) / 2);
     const y = Math.round(row * tileSize + (tileSize - sprite.h) / 2);
-
-    ctx.imageSmoothingEnabled = false;
 
     ctx.drawImage(
         doorSpriteSheet,
@@ -54,19 +45,15 @@ export function drawDoor(spriteName, col, row) {
 }
 
 export function drawFloor() {
-    const cols = Math.floor(canvas.width / tileSize);
-    const rows = Math.floor(canvas.height / tileSize);
+    const cols = Math.floor(baseW / tileSize);
+    const rows = Math.floor(baseH / tileSize);
 
     for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
             const x = col * tileSize;
             const y = row * tileSize;
 
-            if ((row + col) % 2 === 0) {
-                ctx.fillStyle = '#FFFFFF';
-            } else {
-                ctx.fillStyle = '#bcbcbc';
-            }
+            ctx.fillStyle = (row + col) % 2 === 0 ? '#FFFFFF' : '#bcbcbc';
             ctx.fillRect(x, y, tileSize, tileSize);
 
             ctx.strokeStyle = '#000000';
@@ -77,29 +64,19 @@ export function drawFloor() {
 
     const wallThickness = 5;
 
-    // LEFT WALL
-    drawWallStrip(0, 0, wallThickness, canvas.height);
-
-    // RIGHT WALL  
-    drawWallStrip(canvas.width - wallThickness, 0, wallThickness, canvas.height);
-
-    // TOP WALL
-    drawWallStrip(0, 0, canvas.width, wallThickness);
-
-    // BOTTOM WALL
-    drawWallStrip(0, canvas.height - wallThickness, canvas.width, wallThickness);
+    drawWallStrip(0, 0, wallThickness, baseH);
+    drawWallStrip(baseW - wallThickness, 0, wallThickness, baseH);
+    drawWallStrip(0, 0, baseW, wallThickness);
+    drawWallStrip(0, baseH - wallThickness, baseW, wallThickness);
 }
 
 function drawWallStrip(x, y, width, height) {
-    // Brown wood background
     ctx.fillStyle = '#8B5A3C';
     ctx.fillRect(x, y, width, height);
 
-    // Darker brown overlay (wood grain effect)
     ctx.fillStyle = '#6B4423';
     ctx.fillRect(x + 2, y + 2, width - 4, height - 4);
 
-    // Draw horizontal lines (cabinet planks)
     ctx.strokeStyle = '#9B6A4C';
     ctx.lineWidth = 2;
 
@@ -117,9 +94,7 @@ function drawWallStrip(x, y, width, height) {
 }
 
 export function drawSprite(spriteName, col = 0, row = 0) {
-    if (!kitchenSpriteLoaded) {
-        return;
-    }
+    if (!kitchenSpriteLoaded) return;
 
     const sprite = sprites[spriteName.slice(0, -1)];
     if (!sprite) {
@@ -127,11 +102,8 @@ export function drawSprite(spriteName, col = 0, row = 0) {
         return;
     }
 
-    const tileSize = 32;
     const x = Math.round(col * tileSize + (tileSize - sprite.w) / 2);
     const y = Math.round(row * tileSize + (tileSize - sprite.h) / 2);
-
-    //ctx.imageSmoothingEnabled = false;
 
     ctx.drawImage(
         spriteSheet,
@@ -141,7 +113,6 @@ export function drawSprite(spriteName, col = 0, row = 0) {
 }
 
 spriteSheet.onload = () => {
-    console.log('Kitchen sprites loaded! ');
+    console.log('Kitchen sprites loaded!');
     kitchenSpriteLoaded = true;
-}
-
+};

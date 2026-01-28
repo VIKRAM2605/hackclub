@@ -1,3 +1,4 @@
+import { baseW } from "./CharacterMovement.js";
 import { gameRunning } from "./GameMechanics.js";
 import { showRetryPage } from "./RetryPage.js";
 
@@ -27,7 +28,7 @@ export function showHealth() {
 
     const totalHealthBarWidth = (activeHearts * displaySize) + ((activeHearts - 1) * spacing);
 
-    const startX = Math.floor(canvas.width - totalHealthBarWidth - rightMargin);
+    const startX = Math.floor(baseW - totalHealthBarWidth - rightMargin);
     
     for (let i = 0; i < activeHearts; i++) {
         const xPos = startX + (i * (displaySize + spacing));

@@ -1,3 +1,4 @@
+import { baseW } from "./CharacterMovement.js";
 import { gameRunning } from "./GameMechanics.js";
 import { sprites, spriteSheet } from "./SceneCreation.js";
 import { cookedFoodCount } from "./StateManagement.js";
@@ -43,7 +44,7 @@ export function showCookedFood() {
         const col = index % 2;
         const row = Math.floor(index / 2);
 
-        const xBase = Math.floor(canvas.width - rightMargin - (col * columnWidth));
+        const xBase = Math.floor(baseW - rightMargin - (col * columnWidth));
         const yPos = Math.floor(foodStartY + (row * rowHeight));
 
         if (sprite) {

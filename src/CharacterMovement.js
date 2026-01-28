@@ -7,16 +7,31 @@ import { checkSpillCollision, drawSpills, updateSpills } from "./RandomOilSpilla
 import { gameRunning } from "./GameMechanics.js";
 import { showHealth } from "./HealthStateManagement.js";
 import { showCookedFood } from "./DisplayCookedFood.js";
-const canvas = document.getElementById('canvas1');
-const ctx = canvas.getContext('2d');
 
-canvas.width = canvas.offsetWidth;
-canvas.height = canvas.offsetHeight;
+
+export const canvas = document.getElementById('canvas1');
+export const ctx = canvas.getContext('2d');
 
 ctx.imageSmoothingEnabled = false;
 
-canvas.width = 480;
-canvas.height = 292;
+export const baseW = 480;
+export const baseH = 288;
+
+const scale = 2.3;
+const dpr = window.devicePixelRatio || 1;
+
+const displayW = baseW * scale;
+const displayH = baseH * scale;
+
+canvas.style.width = `${displayW}px`;
+canvas.style.height = `${displayH}px`;
+
+canvas.width = displayW * dpr;
+canvas.height = displayH * dpr;
+
+ctx.scale(dpr * scale, dpr * scale);
+
+
 
 let playerSpriteLoaded = false;
 let lastTime = performance.now();
@@ -133,8 +148,8 @@ function drawCollisionBoxes() {
     ctx.strokeRect(
         margin + wallPadding,
         margin + wallPadding,
-        canvas.width - 2 * (margin + wallPadding),
-        canvas.height - 2 * (margin + wallPadding)
+        baseW - 2 * (margin + wallPadding),
+        baseH - 2 * (margin + wallPadding)
     );
 }
 
@@ -291,9 +306,9 @@ export function isValidPosition(x, y) {
 
     // Check wall boundaries
     if (playerBox.left < margin + wallPadding) return false;
-    if (playerBox.right > canvas.width - margin - wallPadding) return false;
+    if (playerBox.right > baseW - margin - wallPadding) return false;
     if (playerBox.top < margin + topWallPadding) return false;
-    if (playerBox.bottom > canvas.height - margin - wallPadding) return false;
+    if (playerBox.bottom > baseH - margin - wallPadding) return false;
 
     // Check collision with objects
     for (const [objectName, coords] of Object.entries(objectCoordinates)) {
@@ -417,7 +432,8 @@ function hideInteractButton() {
 export function gameLoop(currentTime) {
     const deltaTime = currentTime - lastTime;
     lastTime = currentTime
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.clearRect(0, 0, baseW, baseH);
 
     const isSlipping = checkSpillCollision(player.x, player.y);
 

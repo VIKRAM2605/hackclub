@@ -189,65 +189,44 @@ export const shopTemplate = `
     }
 </style>
 
-<div id="shop-modal" style="
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 300px;
-    max-height: 60vh;
-    height:auto;
-    color: #e0e0e0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    flex-direction: column;
-    z-index: 1000;
-    overflow: hidden;
-    background: transparent;
-">
-    <canvas id="shop-bg-canvas" width="200" height="200" style="
-        position: absolute;
-        top: 0;
-        left: 0;
-        z-index: -1;
-        width: 100%;
-        height: 100%;
-        image-rendering: pixelated;
-    "></canvas>
+<div id="shop-modal">
+    <div style="position: relative; width: 392px; height: 596px;">
+        
+        <canvas id="shop-bg-canvas" style="position: absolute; top: 0; left: 0; z-index: 0;"></canvas>
 
-    <div style="
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        flex-shrink: 0;
-    ">
-        <canvas id="close-modal" style="
-            cursor: pointer;"
-        </canvas>
-    </div>
-    <div style="
-            padding-top:5px;
-            padding-right: 20px;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            flex-shrink: 0;
-            z-index:10;
-        ">
-            <span style="font:6px'Pixelify Sans', sans-serif; font-size: 8px; font-weight: bold; color: black;">
-                $ <span id="display-money">0.00</span>
-            </span>
-    </div> 
+        <div style="position: relative; z-index: 1; width: 100%; height: 100%; display: flex; flex-direction: column;">
+            
+            <div style="display: flex; justify-content: flex-end; padding-top: 12px; padding-right: 12px;">
+                <canvas id="close-modal"></canvas>
+            </div>
 
-    <div style="padding: 20px; padding-top:0px; flex-grow: 1; display: flex; flex-direction: column; gap: 15px; position: relative;min-height: 0;">
-
-        <div id="shop-items-scroll-container" style="flex-grow: 1; overflow-y: auto;padding-right: 5px;">           
-            <div id="shop-items-container" style="
-                display: flex; 
-                flex-direction: row; 
-                flex-wrap: wrap;
-                gap: 10px;
+            <div style="
+                display: flex;
+                justify-content: flex-end;
+                padding-right: 30px;
+                margin-top: 30px;
             ">
+                <span style="font-family: 'Pixelify Sans', sans-serif; font-size: 24px; font-weight: bold; color: black;">
+                    $ <span id="display-money">0.00</span>
+                </span>
+            </div> 
+
+            <div id="shop-items-scroll-container" style="
+                flex-grow: 1; 
+                overflow-y: auto; 
+                margin-top: 20px; 
+                margin-bottom: 20px; 
+                padding-left: 20px;
+                padding-right: 10px;
+            ">           
+                <div id="shop-items-container" style="
+                    display: flex; 
+                    flex-direction: row; 
+                    flex-wrap: wrap;
+                    justify-content: center;
+                    gap: 15px;
+                ">
+                </div>
             </div>
         </div>
     </div>

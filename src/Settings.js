@@ -113,6 +113,7 @@ export async function showSettingsPage(location) {
         settingsctx.clearRect(0, 0, logicalW, logicalH);
 
         settingsctx.save();
+        
         settingsctx.scale(scale, scale);
 
         settingsctx.drawImage(
