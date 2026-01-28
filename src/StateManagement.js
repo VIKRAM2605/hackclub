@@ -118,10 +118,10 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
         const updateshopUi = () => {
             moneyDisplay.innerText = getBalance().toFixed(2);
             shopContainer.innerHTML = '';
-            
+
             for (let objName in objectCoordinates) {
                 const obj = objectCoordinates[objName];
-                
+
                 if (obj.unlockedSlots && obj.unlockedSlots < 4) {
 
                     const nextLevel = obj.unlockedSlots + 1;
@@ -136,11 +136,11 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
                     slotCard.style.margin = "10px";
                     slotCard.style.alignItems = 'center';
 
-                    const cardBaseSize = 50; 
-                    
+                    const cardBaseSize = 50;
+
                     const cardCanvas = document.createElement("canvas");
                     cardCanvas.id = `object-canvas-${objName}`;
-                    
+
                     const objctx = setupCanvas(cardCanvas, cardBaseSize, cardBaseSize);
 
                     const btnWidth = 50;
@@ -148,7 +148,7 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
 
                     const buyCanvas = document.createElement("canvas");
                     buyCanvas.id = `buy-canvas-${objName}`;
-                    
+
                     const buyctx = setupCanvas(buyCanvas, btnWidth, btnHeight);
 
                     buyCanvas.style.marginTop = "2px";
@@ -158,10 +158,10 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
                     slotCard.appendChild(buyCanvas);
                     shopContainer.appendChild(slotCard);
 
-                    
+
                     objctx.drawImage(
                         bgSprite,
-                        357, 161, 21, 21, 
+                        357, 161, 21, 21,
                         0, 0, cardBaseSize, cardBaseSize
                     );
 
@@ -169,7 +169,7 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
                     objctx.drawImage(
                         spriteSheet,
                         sprite.x, sprite.y, sprite.w, sprite.h,
-                        (cardBaseSize / 2) - (sprite.w / 2), (cardBaseSize / 2) - (sprite.h / 2), 
+                        (cardBaseSize / 2) - (sprite.w / 2), (cardBaseSize / 2) - (sprite.h / 2),
                         sprite.w, sprite.h
                     );
 
@@ -195,7 +195,7 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
                     buyctx.fillStyle = "white";
                     buyctx.textAlign = "center";
                     buyctx.font = "6px 'Pixelify Sans', sans-serif";
-                    
+
                     buyctx.fillText(`Lvl ${nextLevel}`, btnWidth / 2, 7);
 
                     const playerMoney = getBalance();
@@ -218,12 +218,12 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
 
             for (let skillName in skillUpgrades) {
                 if (skillName === "buyAHeart") continue;
-                
+
                 const currentSkillLvl = player[skillName];
                 if (currentSkillLvl && currentSkillLvl < 4) {
                     const nextSkillLvl = currentSkillLvl + 1;
                     const cost = getNextUpgradeForSkills(skillName);
-                    
+
                     const slotCard = document.createElement("div");
                     slotCard.id = skillName;
                     slotCard.className = "shop-card";
@@ -237,7 +237,7 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
 
                     const cardCanvas = document.createElement("canvas");
                     cardCanvas.id = `object-canvas-${skillName}`;
-                    
+
                     const objctx = setupCanvas(cardCanvas, cardBaseSize, cardBaseSize);
 
                     const btnWidth = 50;
@@ -245,7 +245,7 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
 
                     const buyCanvas = document.createElement("canvas");
                     buyCanvas.id = `buy-canvas-${skillName}`;
-                    
+
                     const buyctx = setupCanvas(buyCanvas, btnWidth, btnHeight);
 
                     buyCanvas.style.marginTop = "2px";
@@ -260,12 +260,12 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
                         357, 161, 21, 21,
                         0, 0, cardBaseSize, cardBaseSize
                     );
-                    
+
                     const sprite = skillSpriteForUpgrades[skillName];
                     objctx.drawImage(
                         sprite.img,
                         sprite.x, sprite.y, sprite.w, sprite.h,
-                        (cardBaseSize / 2) - (sprite.sw / 2), (cardBaseSize / 2) - (sprite.sh / 2), 
+                        (cardBaseSize / 2) - (sprite.sw / 2), (cardBaseSize / 2) - (sprite.sh / 2),
                         sprite.sw, sprite.sh
                     );
 
@@ -317,7 +317,7 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
         const closectx = closeCanvas.getContext('2d');
 
         const closeW = 35;
-        const closeH = 20;
+        const closeH = 30;
 
         const dpr = window.devicePixelRatio || 1;
         closeCanvas.width = closeW * dpr;
@@ -326,13 +326,12 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
         closeCanvas.style.height = `${closeH}px`;
         closeCanvas.style.cursor = "pointer";
 
-        const spriteW = 26;
         const x = rect.width - 26;
 
         closectx.drawImage(
             bgSprite,
             64, 160, 26, 16,
-            x, 0, 26, 16
+            x, 0, 28, 22
         )
 
         closeCanvas.addEventListener('click', () => {
