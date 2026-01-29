@@ -1,3 +1,4 @@
+import { gameRunning } from "./GameMechanics.js";
 import { objectCoordinates } from "./ObjectCoordinates.js";
 import { sprites } from "./SceneCreation.js";
 import { attemptSkillUpgrade, attemptUpgrade, getNextUpgradeForObject, getNextUpgradeForSkills, skillNameForUpgrades, skillSpriteForUpgrades, skillUpgrades, upgrades } from "./ShopStateManagement.js";
@@ -549,8 +550,6 @@ export function drawSpriteOnModal(spriteName, canvas, ctx, width, height) {
 
     const sprite = sprites[spriteName];
 
-    //ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     ctx.drawImage(
         spriteSheet,
         sprite.x, sprite.y,
@@ -594,14 +593,13 @@ export function addItemsToSlot(spriteName, objectId, unlockedSlots, templateName
 
         const slotSourceW = 14;
         const slotSourceH = 14;
-
-
         // Mark slot as occupied
         State[objectId][targetSlotId].spriteName = spriteName;
         State[objectId][targetSlotId].status = 'cooking';
         targetSlot.style.borderColor = '#4CAF50';
 
         State[objectId][targetSlotId].startTime = performance.now();
+        State[objectId][targetSlotId].pausedElapsed = null;
 
         if (timerFrames && timerFrames.ongoing && timerFrames.ongoing.length > 0) {
             drawTimer(ctx, timerFrames.ongoing[0], slotSourceW, slotSourceH);
@@ -614,7 +612,6 @@ export function addItemsToSlot(spriteName, objectId, unlockedSlots, templateName
             console.log(status);
             if (status === 'cooked') {
                 console.log('picked up cooked food');
-
 
                 const newCount = updateCookedFoodCount(State[objectId][targetSlotId].spriteName);
                 console.log('cookedPatty count:', newCount);
@@ -632,11 +629,11 @@ export function addItemsToSlot(spriteName, objectId, unlockedSlots, templateName
                 State[objectId][targetSlotId].status = "empty";
                 State[objectId][targetSlotId].spriteName = null;
                 State[objectId][targetSlotId].startTime = null;
+                State[objectId][targetSlotId].pauseStartTime = null;
 
                 targetSlot.style.outline = 'none';
 
                 drawSpriteOnTopOfTheStation(objectId, templateName);
-
 
             } else if (status === 'cooking') {
                 console.log('removed uncooked food');
@@ -653,6 +650,7 @@ export function addItemsToSlot(spriteName, objectId, unlockedSlots, templateName
                 State[objectId][targetSlotId].status = "empty";
                 State[objectId][targetSlotId].spriteName = null;
                 State[objectId][targetSlotId].startTime = null;
+                State[objectId][targetSlotId].pauseStartTime = null;
 
                 targetSlot.style.outline = 'none';
 
@@ -660,7 +658,6 @@ export function addItemsToSlot(spriteName, objectId, unlockedSlots, templateName
 
             }
         };
-
 
         State[objectId][targetSlotId].animationId = requestAnimationFrame((currentTime) =>
             animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, targetSlotId, templateName, slotSourceW, slotSourceH)
@@ -671,6 +668,27 @@ export function addItemsToSlot(spriteName, objectId, unlockedSlots, templateName
 }
 
 export function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, targetSlotId, templateName, width, height) {
+
+    const slotData = State[objectId][targetSlotId];
+
+    if (!gameRunning) {
+
+        if (!slotData.pauseStartTime) {
+            slotData.pauseStartTime = currentTime;
+        }
+
+        slotData.animationId = requestAnimationFrame((time) =>
+            animateTimer(time, spriteName, ctx, targetSlot, objectId, targetSlotId, templateName, width, height)
+        );
+        return;
+    }
+
+    if (slotData.pauseStartTime) {
+        const durationPaused = currentTime - slotData.pauseStartTime;
+        slotData.startTime += durationPaused;
+        slotData.pauseStartTime = null;
+    }
+
     const totalCookingTime = objectCoordinates[templateName].cookingTime;
 
     const startTime = State[objectId][targetSlotId].startTime;
@@ -680,8 +698,6 @@ export function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId,
     const elapsedSeconds = Math.floor(timeInMs / 1000);
 
     const timeLeft = Math.max(0, totalCookingTime - elapsedSeconds);
-
-
 
     // Clear and redraw
     ctx.clearRect(0, 0, width, height);
@@ -693,14 +709,6 @@ export function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId,
     )
 
     drawSpriteOnModal(spriteName, targetSlot, ctx, width, height);
-
-    // Draw countdown timer
-    // ctx.save();
-    // ctx.font = `bold 4px 'Pixelify Sans', sans-serif`;
-    // ctx.textAlign = 'center';
-    // ctx.textBaseline = 'middle';
-    // ctx.fillText(`${timeLeft}s`, width / 2, height / 2);
-    // ctx.restore();
 
     if (timeLeft > 0) {
 
@@ -724,12 +732,6 @@ export function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId,
         State[objectId][targetSlotId].status = 'cooked';
 
         targetSlot.style.outline = '2px solid lime';
-
-        // ctx.fillStyle = 'black';
-        // ctx.font = `bold 6px 'Pixelify Sans', sans-serif`;
-        // ctx.textAlign = 'center';
-        // ctx.fillText('Cooked', width / 2, height - 6);
-
     }
 }
 
@@ -764,13 +766,12 @@ export function redrawSlot(slotId, objectId, slotCanvas, templateName, width, he
     const ctx = slotCanvas.getContext('2d');
     const totalCookingTime = objectCoordinates[templateName].cookingTime;
 
+    slotData.pauseStartTime ??= 0;
 
     slotCanvas.onclick = () => {
         const status = State[objectId][slotId].status;
-        console.log(status);
         if (status === 'cooked') {
             console.log('picked up cooked food');
-
 
             const newCount = updateCookedFoodCount(slotData.spriteName);
             console.log('cookedPatty count:', newCount);
@@ -785,9 +786,11 @@ export function redrawSlot(slotId, objectId, slotCanvas, templateName, width, he
             slotData.status = "empty";
             slotData.spriteName = null;
             slotData.startTime = null;
+            slotData.pauseStartTime = null;
 
-            slotCanvas.style.border = 'none';
+            slotCanvas.style.outline = 'none';
 
+            drawSpriteOnTopOfTheStation(objectId, templateName);
 
         } else if (status === 'cooking') {
             console.log('removed uncooked food');
@@ -805,8 +808,11 @@ export function redrawSlot(slotId, objectId, slotCanvas, templateName, width, he
             slotData.status = "empty";
             slotData.spriteName = null;
             slotData.startTime = null;
+            slotData.pauseStartTime = null;
 
-            slotCanvas.style.border = 'none';
+            slotCanvas.style.outline = 'none';
+
+            drawSpriteOnTopOfTheStation(objectId, templateName);
 
         }
     };
@@ -815,7 +821,10 @@ export function redrawSlot(slotId, objectId, slotCanvas, templateName, width, he
     if (slotData.status === 'cooking' && slotData.startTime) {
 
         const now = performance.now();
-        const timeInMs = now - slotData.startTime;
+
+        const effectiveNow = slotData.pauseStartTime || now;
+
+        const timeInMs = effectiveNow - slotData.startTime;
         const elapsedSeconds = Math.floor(timeInMs / 1000);
         const timeLeft = Math.max(0, totalCookingTime - elapsedSeconds);
 
@@ -828,13 +837,6 @@ export function redrawSlot(slotId, objectId, slotCanvas, templateName, width, he
         );
 
         drawSpriteOnModal(slotData.spriteName, slotCanvas, ctx, width, height);
-
-        // ctx.save();
-        // ctx.font = `bold 6px 'Pixelify Sans', sans-serif`;
-        // ctx.textAlign = 'center';
-        // ctx.textBaseline = 'middle';
-        // ctx.fillText(`${timeLeft}s`, width / 2, height / 2);
-        // ctx.restore();
 
         if (timeLeft > 0) {
 
@@ -850,30 +852,14 @@ export function redrawSlot(slotId, objectId, slotCanvas, templateName, width, he
                 animateTimer(currentTime, slotData.spriteName, ctx, slotCanvas, objectId, slotId, templateName, width, height)
             );
         } else {
-
             slotData.status = 'cooked';
 
-            targetSlot.style.outline = '2px solid lime';
-
-            // ctx.fillStyle = 'black';
-            // ctx.font = `bold 4px 'Pixelify Sans', sans-serif`;
-            // ctx.textAlign = 'center';
-            // ctx.fillText('Done', width / 2, height - 2);
-
+            slotCanvas.style.outline = '2px solid lime';
         }
     } else if (slotData.status === 'cooked') {
-
-        ctx.clearRect(0, 0, width, height);
-
         drawSpriteOnModal(slotData.spriteName, slotCanvas, ctx, width, height);
 
-        targetSlot.style.outline = '2px solid lime';
-
-        // ctx.fillStyle = 'black';
-        // ctx.font = `bold 6px 'Pixelify Sans', sans-serif`;
-        // ctx.textAlign = 'center';
-        // ctx.fillText('Cooked', width / 2, height - 6);
-
+        slotCanvas.style.outline = '2px solid lime';
     }
 }
 

@@ -38,7 +38,6 @@ export const grillTemplate = `
             cursor: pointer;
             pointer-events: auto;
             user-select: none;
-            background:'rgba(255, 0, 0, 0.5)';
         "></div>
 
         <div style="
