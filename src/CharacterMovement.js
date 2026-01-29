@@ -7,6 +7,7 @@ import { checkSpillCollision, drawSpills, updateSpills } from "./RandomOilSpilla
 import { gameRunning } from "./GameMechanics.js";
 import { showHealth } from "./HealthStateManagement.js";
 import { showCookedFood } from "./DisplayCookedFood.js";
+import { drawCookingSpriteOnMainCanvas } from "./StateManagement.js";
 
 
 export const canvas = document.getElementById('canvas1');
@@ -84,7 +85,7 @@ const sprites = {
             { x: 134, y: 58, w: 20, h: 34 },
         ],
         slip: [
-            { x: 26, y: 128, w: 32, h: 34 },
+            { x: 26, y: 138, w: 32, h: 34 },
             { x: 62, y: 136, w: 32, h: 34 },
             { x: 96, y: 136, w: 32, h: 34 },
             { x: 128, y: 138, w: 32, h: 34 },
@@ -184,14 +185,17 @@ export function drawPlayer() {
 
     ctx.imageSmoothingEnabled = false;
 
+    const xOffset = Math.floor(-currentFrame.w / 2);
+    const yOffset = Math.floor(-currentFrame.h / 2);
+
     ctx.drawImage(
         spriteSheet,
-        currentFrame.x,
-        currentFrame.y,
-        currentFrame.w,
-        currentFrame.h,
-        Math.round(-player.width / 2),
-        Math.round(-player.height / 2),
+        currentFrame.x + 0.5,
+        currentFrame.y + 0.5,
+        currentFrame.w - 1.0,
+        currentFrame.h - 1.0,
+        xOffset,
+        yOffset,
         currentFrame.w,
         currentFrame.h
     );
@@ -203,6 +207,9 @@ export function updatePlayer(slipping, deltaTime) {
     if (gameRunning === false) return;
     if (slipping && player.slipTimer <= 0) {
         player.slipTimer = player.slipDuration;
+        player.frameIndex = 0;
+        player.frameTimer = 0;
+        player.isSlipping = true;
     }
 
     if (player.slipTimer > 0) {
@@ -280,7 +287,7 @@ export function updatePlayer(slipping, deltaTime) {
 
         player.frameTimer += deltaTime;
 
-        const currentInterval = player.isSlipping ? player.frameInterval / 1.5 : player.frameInterval;
+        const currentInterval = player.isSlipping ? player.frameInterval / 0.5 : player.frameInterval;
 
         if (player.frameTimer >= currentInterval) {
             player.frameTimer = 0;
@@ -431,9 +438,15 @@ function hideInteractButton() {
 }
 export function gameLoop(currentTime) {
     const deltaTime = currentTime - lastTime;
-    lastTime = currentTime
+    lastTime = currentTime;
 
-    ctx.clearRect(0, 0, baseW, baseH);
+    ctx.save()
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.restore()
 
     const isSlipping = checkSpillCollision(player.x, player.y);
 
@@ -446,6 +459,10 @@ export function gameLoop(currentTime) {
 
 
     renderObject();
+
+    Object.entries(objectCoordinates).forEach(([key, value]) => {
+        drawCookingSpriteOnMainCanvas(value.objectId,key);
+    });
 
     showHealth();
 

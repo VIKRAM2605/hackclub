@@ -1,6 +1,6 @@
 import { gameRunning } from "./GameMechanics.js";
 import { objectCoordinates } from "./ObjectCoordinates.js";
-import { sprites } from "./SceneCreation.js";
+import { drawSprite, drawSpriteFromSlotToMainCanvs, sprites, spriteSheet } from "./SceneCreation.js";
 import { attemptSkillUpgrade, attemptUpgrade, getNextUpgradeForObject, getNextUpgradeForSkills, skillNameForUpgrades, skillSpriteForUpgrades, skillUpgrades, upgrades } from "./ShopStateManagement.js";
 import { getBalance } from "./Wallet.js";
 
@@ -40,19 +40,24 @@ const timerFrames = {
 };
 
 const grillSlotPositions = [
-    { x: 14, y: 10 },
-    { x: 28, y: 10 },
-    { x: 14, y: 20 },
-    { x: 28, y: 20 }
+    { x: 14, y: 8 },
+    { x: 28, y: 8 },
+    { x: 14, y: 17 },
+    { x: 28, y: 17 }
 ]
+
+const intaractableGrillPositionsForPatty = [
+    { col: -0.19, row: -0.32 }, // Top-Left (Moves Left & Up)
+    { col: 0.24, row: -0.32 }, // Top-Right (Moves Right & Up)
+    { col: -0.19, row: -0.08 },  // Bottom-Left (Moves Left & Down)
+    { col: 0.24, row: -0.08 }   // Bottom-Right (Moves Right & Down)
+];
+
 
 export const cookedFoodCount = {
     cookedPatty: 0,
     cookedHotDog: 0
 };
-
-const spriteSheet = new Image();
-spriteSheet.src = "assets/professional_kitchen_withshadows.png";
 
 export function toTitleCase(str) {
     return str.toLowerCase().split(' ')
@@ -447,7 +452,7 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
             const cookedSourceH = 14;
             const ctxCookedSprite = canvasSetupForCookingModal(canvasCookedSprite, cookedSourceW, cookedSourceH);
             ctxCookedSprite.drawImage(inventorySprite, 177, 113, cookedSourceW, cookedSourceH, 0, 0, cookedSourceW, cookedSourceH);
-            drawSpriteOnModal('cookedPatty', canvasCookedSprite, ctxCookedSprite, cookedSourceW, cookedSourceH);
+            drawSpriteOnModal('unCookedPatty', canvasCookedSprite, ctxCookedSprite, cookedSourceW, cookedSourceH);
 
             const slots = ['slot-1', 'slot-2', 'slot-3', 'slot-4'];
             const slotSourceW = 14;
@@ -473,7 +478,7 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
             canvasCookedSprite.style.cursor = 'pointer';
             canvasCookedSprite.addEventListener('click', () => {
                 console.log('clicked cooked patty');
-                addItemsToSlot('cookedPatty', objectId, unlockedSlots, templateName);
+                addItemsToSlot('unCookedPatty', objectId, unlockedSlots, templateName);
             });
         });
     }
@@ -505,17 +510,58 @@ export function drawSpriteOnTopOfTheStation(objectId, templateName) {
             const slotData = State[objectId][slotId];
 
             if (slotData && slotData.spriteName && (slotData.status === 'cooking' || slotData.status === 'cooked')) {
-                const sprite = sprites[slotData.spriteName];
-                const pos = grillSlotPositions[index];
+                let sprite, pos, mainPos, stn, name;
+
+                if (slotData.status == 'cooked') {
+                    name = slotData.spriteName.replace('unCooked', 'cooked');
+                    sprite = sprites[name];
+                } else {
+                    name = slotData.spriteName
+                    sprite = sprites[name];
+                }
+
+                if (templateName === 'grillLevel11') {
+                    stn = sprites['grillLevel1']
+                    pos = grillSlotPositions[index];
+                }
 
                 if (sprite && pos) {
-                    const foodSize = 8;
+                    const foodSize = 6;
 
                     ctx.drawImage(
                         spriteSheet,
                         sprite.x, sprite.y, sprite.w, sprite.h,
                         pos.x, pos.y, foodSize, foodSize
                     );
+
+                }
+            }
+        });
+    }
+}
+export function drawCookingSpriteOnMainCanvas(objectId, templateName) {
+    const slots = ['slot-1', 'slot-2', 'slot-3', 'slot-4'];
+    if (State[objectId]) {
+        slots.forEach((slotId, index) => {
+            const slotData = State[objectId][slotId];
+
+            if (slotData && slotData.spriteName && (slotData.status === 'cooking' || slotData.status === 'cooked')) {
+                let pos, stn, name;
+
+                if (slotData.status === 'cooked') {
+                    name = slotData.spriteName.replace('unCooked', 'cooked');
+                } else {
+                    name = slotData.spriteName
+                }
+
+                if (templateName === 'grillLevel11') {
+                    stn = objectCoordinates['grillLevel11'];
+                    pos = intaractableGrillPositionsForPatty[index];
+                }
+
+                if (pos && stn) {
+
+                    drawSpriteFromSlotToMainCanvs(name, pos.col + stn.col, pos.row + stn.row, 6, 6);
                 }
             }
         });
@@ -554,7 +600,7 @@ export function drawSpriteOnModal(spriteName, canvas, ctx, width, height) {
         spriteSheet,
         sprite.x, sprite.y,
         sprite.w, sprite.h,
-        (width / 2) - (sprite.w / 2), (height / 2) - (sprite.h / 2) + 1,
+        (width / 2) - (sprite.w / 2), (height / 2) - (sprite.h / 2),
         sprite.w, sprite.h
     );
 
@@ -708,7 +754,12 @@ export function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId,
         0, 0, width, height
     )
 
-    drawSpriteOnModal(spriteName, targetSlot, ctx, width, height);
+    let displaySpriteName = spriteName;
+    if (slotData.status === 'cooked') {
+        displaySpriteName = spriteName.replace('unCooked', 'cooked');
+    }
+
+    drawSpriteOnModal(displaySpriteName, targetSlot, ctx, width, height);
 
     if (timeLeft > 0) {
 
@@ -730,6 +781,10 @@ export function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId,
         // clear and reset for next item
         State[objectId][targetSlotId].animationId = null;
         State[objectId][targetSlotId].status = 'cooked';
+
+        drawSpriteOnModal(spriteName.replace('unCooked', 'cooked'), targetSlot, ctx, width, height);
+
+        drawSpriteOnTopOfTheStation(objectId, templateName);
 
         targetSlot.style.outline = '2px solid lime';
     }
@@ -854,10 +909,14 @@ export function redrawSlot(slotId, objectId, slotCanvas, templateName, width, he
         } else {
             slotData.status = 'cooked';
 
+            drawSpriteOnTopOfTheStation(objectId, templateName);
+
             slotCanvas.style.outline = '2px solid lime';
         }
     } else if (slotData.status === 'cooked') {
-        drawSpriteOnModal(slotData.spriteName, slotCanvas, ctx, width, height);
+        drawSpriteOnModal(slotData.spriteName.replace('unCooked', 'cooked'), slotCanvas, ctx, width, height);
+
+        drawSpriteOnTopOfTheStation(objectId, templateName);
 
         slotCanvas.style.outline = '2px solid lime';
     }

@@ -10,6 +10,7 @@ export const objectCoordinates = {
         interactable: true,
         name:'patty stn',
         cookingTime:10,
+        objectId:1,
         onInteract: {
             onOpen:(canvas,ctx,player,unlockedSlots)=>{
                 console.log("function call=>",canvas,ctx,player,unlockedSlots);

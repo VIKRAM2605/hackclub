@@ -3,7 +3,7 @@ import { baseH, baseW, canvas, ctx } from './CharacterMovement.js';
 export const tileSize = 32;
 
 export const spriteSheet = new Image();
-spriteSheet.src = 'assets/professional_kitchen_withshadows.png';
+spriteSheet.src = 'assets/professional_kitchen_withshadows_edited.png';
 
 const doorSpriteSheet = new Image();
 doorSpriteSheet.src = 'assets/professional_kitchen_room_door_tiles.png';
@@ -11,13 +11,14 @@ doorSpriteSheet.src = 'assets/professional_kitchen_room_door_tiles.png';
 export const sprites = {
     unCookedHotDog: { x: 85, y: 3, w: 6, h: 11, sw: 6, sh: 11 },
     cookedHotDog: { x: 85, y: 18, w: 6, h: 11, sw: 6, sh: 11 },
+    cookedPatty: { x: 66, y: 19, w: 10, h: 9, sw: 10, sh: 9 },
+    unCookedPatty: { x: 212, y: 69, w: 10, h: 9, sw: 10, sh: 9 },
     eggCatoonHorizontal: { x: 209, y: 34, w: 14, h: 13, sw: 14, sh: 13 },
     eggCatoonVertical: { x: 211, y: 48, w: 11, h: 16, sw: 11, sh: 16 },
     gasStove: { x: 98, y: 168, w: 29, h: 40, sw: 29, sh: 40 },
     sinkHorizontal: { x: 49, y: 115, w: 31, h: 45, sw: 31, sh: 45 },
     dirtyPlate: { x: 177, y: 2, w: 14, h: 13, sw: 14, sh: 13 },
     cleanPlate: { x: 145, y: 17, w: 14, h: 13, sw: 14, sh: 13 },
-    cookedPatty: { x: 66, y: 19, w: 10, h: 12, sw: 10, sh: 12 },
     grillLevel1: { x: 305, y: 164, w: 31, h: 44, sw: 31, sh: 44 },
     typeOneLongFilledShelfVertical: { x: 54, y: 453, w: 25, h: 58, sw: 25, sh: 58 },
     typeOneLongFilledShelfHorizontal: { x: 1, y: 466, w: 47, h: 46, sw: 47, sh: 46 },
@@ -95,8 +96,14 @@ function drawWallStrip(x, y, width, height) {
 
 export function drawSprite(spriteName, col = 0, row = 0) {
     if (!kitchenSpriteLoaded) return;
+    let sprite;
 
-    const sprite = sprites[spriteName.slice(0, -1)];
+    if (sprites[spriteName]) {
+        sprite = sprites[spriteName];
+    } else {
+        sprite = sprites[spriteName.slice(0, -1)];
+    }
+
     if (!sprite) {
         console.error('Sprite not found:', spriteName);
         return;
@@ -108,7 +115,32 @@ export function drawSprite(spriteName, col = 0, row = 0) {
     ctx.drawImage(
         spriteSheet,
         sprite.x, sprite.y, sprite.w, sprite.h,
-        x, y, sprite.sw, sprite.sh
+        x, y, sprite.w, sprite.h
+    );
+}
+
+export function drawSpriteFromSlotToMainCanvs(spriteName, col = 0, row = 0, width, height) {
+    if (!kitchenSpriteLoaded) return;
+    let sprite;
+
+    if (sprites[spriteName]) {
+        sprite = sprites[spriteName];
+    } else {
+        sprite = sprites[spriteName.slice(0, -1)];
+    }
+
+    if (!sprite) {
+        console.error('Sprite not found:', spriteName);
+        return;
+    }
+
+    const x = Math.round(col * tileSize + (tileSize - sprite.w) / 2);
+    const y = Math.round(row * tileSize + (tileSize - sprite.h) / 2);
+
+    ctx.drawImage(
+        spriteSheet,
+        sprite.x, sprite.y, sprite.w, sprite.h,
+        x, y, width, height
     );
 }
 
