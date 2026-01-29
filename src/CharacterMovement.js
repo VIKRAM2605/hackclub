@@ -432,7 +432,7 @@ function hideInteractButton() {
 export function gameLoop(currentTime) {
     const deltaTime = currentTime - lastTime;
     lastTime = currentTime
-    
+
     ctx.clearRect(0, 0, baseW, baseH);
 
     const isSlipping = checkSpillCollision(player.x, player.y);
@@ -529,8 +529,11 @@ document.addEventListener('keydown', (e) => {
         case 'e':
         case 'E':
             const obj = getNearByInteractables(player.x, player.y);
-            if (obj) interactWithObject(obj);
-            e.preventDefault();
+            if (obj) {
+                e.stopPropagation();
+                e.preventDefault();
+                interactWithObject(obj);
+            }
             break;
         case 'f':
         case 'F':

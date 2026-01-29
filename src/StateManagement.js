@@ -15,6 +15,36 @@ ribbonSprite.src = 'assets/ribbon-banners-Photoroom.png';
 const settingsSprite = new Image();
 settingsSprite.src = 'assets/Settings.png';
 
+const inventorySprite = new Image();
+inventorySprite.src = 'assets/Inventory.png';
+
+const lockSprite = new Image();
+lockSprite.src = 'assets/lock-Photoroom.png';
+
+const timerSprite = new Image();
+timerSprite.src = 'assets/sand-glass1-Photoroom.png';
+
+const timerFrames = {
+    completed: { x: 139, y: 161, w: 51, h: 66 },
+    ongoing: [
+        { x: 43, y: 32, w: 50, h: 67 },
+        { x: 139, y: 32, w: 51, h: 67 },
+        { x: 235, y: 32, w: 51, h: 67 },
+        { x: 332, y: 32, w: 50, h: 67 },
+        { x: 43, y: 161, w: 50, h: 66 },
+        { x: 139, y: 161, w: 51, h: 66 },
+        { x: 223, y: 153, w: 51, h: 66 },
+        { x: 320, y: 153, w: 51, h: 66 },
+    ]
+};
+
+const grillSlotPositions = [
+    { x: 14, y: 10 },
+    { x: 28, y: 10 },
+    { x: 14, y: 20 },
+    { x: 28, y: 20 }
+]
+
 export const cookedFoodCount = {
     cookedPatty: 0,
     cookedHotDog: 0
@@ -343,53 +373,190 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
         });
     }
     else if (templateName == 'grillLevel11') {
-        const canvasCookedSprite = document.getElementById('cooked-canvas-sprite');
+        const grillModal = document.getElementById('grill-modal');
+        const closeHitbox = document.getElementById('close-hitbox');
 
-        // canvasCookedSprite.dataset.id=objectId;
-        // console.log(canvasCookedSprite.dataset.id);
+        Object.assign(grillModal.style, {
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            zIndex: '1000',
+            cursor: 'default'
+        });
 
-        const ctxCookedSprite = canvasCookedSprite.getContext('2d');
+        let isReady = false;
 
-        drawSpriteOnModal('cookedPatty', canvasCookedSprite, ctxCookedSprite);
+        setTimeout(() => {
+            isReady = true;
+        }, 200);
 
-        const slots = ['slot-1', 'slot-2', 'slot-3', 'slot-4'];
-        slots.forEach((slotId, index) => {
-            const slotCanvas = document.getElementById(slotId);
-            if (slotCanvas) {
-                if (index >= unlockedSlots) {
-                    drawLockedSlots(slotCanvas);
-                } else {
-                    slotCanvas.style.cursor = 'default';
-                }
+        const handleEscape = (e) => {
+            if (e.key === 'Escape' && isReady) {
+                modal.remove();
+                document.removeEventListener('keydown', handleEscape);
             }
-        })
+        };
 
+        closeHitbox.addEventListener('click', (e) => {
+            if (!isReady) {
+                return;
+            }
 
-        refillSlotsToPreviousState(objectId, unlockedSlots, templateName);
-        canvasCookedSprite.style.cursor = 'pointer';
+            console.log('Closing modal');
+            e.stopPropagation();
+            e.preventDefault();
+            modal.remove();
+            document.removeEventListener('keydown', handleEscape);
+        });
 
-        canvasCookedSprite.addEventListener('click', () => {
-            console.log('clicked cooked patty');
-            addItemsToSlot('cookedPatty', objectId, unlockedSlots, templateName);
-        })
+        document.addEventListener('keydown', handleEscape);
 
+        closeHitbox.addEventListener('mouseleave', () => {
+            closeHitbox.style.background = 'transparent';
+        });
+
+        requestAnimationFrame(() => {
+            const sourceW = 98;
+            const sourceH = 101;
+            const bgCanvas = document.getElementById('modal-bg-canvas');
+            const bgctx = canvasSetupForCookingModal(bgCanvas, sourceW, sourceH);
+            bgctx.drawImage(inventorySprite, 7, 0, sourceW, sourceH, 0, 0, sourceW, sourceH);
+
+            const closeSourceW = 25;
+            const closeSourceH = 16;
+            const closeCanvas = document.getElementById('close-modal-canvas');
+            const closectx = canvasSetupForCookingModal(closeCanvas, closeSourceW, closeSourceH);
+            closectx.drawImage(inventorySprite, 144, 112, closeSourceW, closeSourceH, 0, 0, closeSourceW, closeSourceH);
+
+            const objCanvas = document.getElementById('canvas-sprite');
+            const objBaseW = 50;
+            const objBaseH = 50;
+            const objctx = canvasSetupForCookingModal(objCanvas, objBaseW, objBaseH);
+            objctx.drawImage(inventorySprite, 177, 113, 14, 14, 0, 0, objBaseW, objBaseH);
+            drawSpriteOnModal(templateName.slice(0, -1), objCanvas, objctx, objBaseW, objBaseH);
+
+            const canvasCookedSprite = document.getElementById('cooked-canvas-sprite');
+            const cookedSourceW = 14;
+            const cookedSourceH = 14;
+            const ctxCookedSprite = canvasSetupForCookingModal(canvasCookedSprite, cookedSourceW, cookedSourceH);
+            ctxCookedSprite.drawImage(inventorySprite, 177, 113, cookedSourceW, cookedSourceH, 0, 0, cookedSourceW, cookedSourceH);
+            drawSpriteOnModal('cookedPatty', canvasCookedSprite, ctxCookedSprite, cookedSourceW, cookedSourceH);
+
+            const slots = ['slot-1', 'slot-2', 'slot-3', 'slot-4'];
+            const slotSourceW = 14;
+            const slotSourceH = 14;
+
+            slots.forEach((slotId, index) => {
+                const slotCanvas = document.getElementById(slotId);
+                const slotctx = canvasSetupForCookingModal(slotCanvas, slotSourceW, slotSourceH);
+                slotctx.drawImage(inventorySprite, 177, 113, slotSourceW, slotSourceH, 0, 0, slotSourceW, slotSourceH);
+
+                if (slotCanvas) {
+                    if (index >= unlockedSlots) {
+                        drawLockedSlots(slotCanvas, slotSourceW, slotSourceH);
+                    } else {
+                        slotCanvas.style.cursor = 'default';
+                    }
+                }
+            });
+
+            refillSlotsToPreviousState(objectId, unlockedSlots, templateName, slotSourceW, slotSourceH);
+            drawSpriteOnTopOfTheStation(objectId, templateName);
+
+            canvasCookedSprite.style.cursor = 'pointer';
+            canvasCookedSprite.addEventListener('click', () => {
+                console.log('clicked cooked patty');
+                addItemsToSlot('cookedPatty', objectId, unlockedSlots, templateName);
+            });
+        });
     }
 
 }
 
+export function drawSpriteOnTopOfTheStation(objectId, templateName) {
+    const canvas = document.getElementById('canvas-sprite');
 
-export function drawSpriteOnModal(spriteName, canvas, ctx) {
+    const ctx = canvas.getContext('2d');
+
+    const width = 50;
+    const height = 50;
+
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.drawImage(
+        inventorySprite,
+        177, 113, 14, 14,
+        0, 0, width, height
+    );
+
+    drawSpriteOnModal(templateName.slice(0, -1), canvas, ctx, width, height);
+
+    const slots = ['slot-1', 'slot-2', 'slot-3', 'slot-4'];
+
+    if (State[objectId]) {
+        slots.forEach((slotId, index) => {
+            const slotData = State[objectId][slotId];
+
+            if (slotData && slotData.spriteName && (slotData.status === 'cooking' || slotData.status === 'cooked')) {
+                const sprite = sprites[slotData.spriteName];
+                const pos = grillSlotPositions[index];
+
+                if (sprite && pos) {
+                    const foodSize = 8;
+
+                    ctx.drawImage(
+                        spriteSheet,
+                        sprite.x, sprite.y, sprite.w, sprite.h,
+                        pos.x, pos.y, foodSize, foodSize
+                    );
+                }
+            }
+        });
+    }
+}
+
+export function canvasSetupForCookingModal(canvas, width, height, scale = 5) {
+
+    const dpr = window.devicePixelRatio || 1;
+
+    const logicalW = width * scale;
+    const logicalH = height * scale;
+
+    canvas.width = logicalW * dpr;
+    canvas.height = logicalH * dpr;
+
+    canvas.style.width = `${logicalW}px`;
+    canvas.style.height = `${logicalH}px`;
+
+    const ctx = canvas.getContext('2d');
+
+    ctx.imageSmoothingEnabled = false;
+
+    ctx.scale(dpr, dpr);
+    ctx.scale(scale, scale);
+
+    return ctx;
+
+};
+
+export function drawSpriteOnModal(spriteName, canvas, ctx, width, height) {
 
     const sprite = sprites[spriteName];
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    //ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.drawImage(
         spriteSheet,
         sprite.x, sprite.y,
         sprite.w, sprite.h,
-        0, 0,
-        sprite.sw * 3, sprite.sh
+        (width / 2) - (sprite.w / 2), (height / 2) - (sprite.h / 2) + 1,
+        sprite.w, sprite.h
     );
 
 }
@@ -425,14 +592,22 @@ export function addItemsToSlot(spriteName, objectId, unlockedSlots, templateName
             State[objectId][targetSlotId].animationId = null;
         }
 
+        const slotSourceW = 14;
+        const slotSourceH = 14;
 
-        ctx.clearRect(0, 0, targetSlot.width, targetSlot.height);
+
         // Mark slot as occupied
         State[objectId][targetSlotId].spriteName = spriteName;
         State[objectId][targetSlotId].status = 'cooking';
         targetSlot.style.borderColor = '#4CAF50';
 
         State[objectId][targetSlotId].startTime = performance.now();
+
+        if (timerFrames && timerFrames.ongoing && timerFrames.ongoing.length > 0) {
+            drawTimer(ctx, timerFrames.ongoing[0], slotSourceW, slotSourceH);
+        }
+
+        drawSpriteOnTopOfTheStation(objectId, templateName);
 
         targetSlot.onclick = () => {
             const status = State[objectId][targetSlotId].status;
@@ -445,64 +620,116 @@ export function addItemsToSlot(spriteName, objectId, unlockedSlots, templateName
                 console.log('cookedPatty count:', newCount);
 
                 if (State[objectId][targetSlotId].animationId) cancelAnimationFrame(State[objectId][targetSlotId].animationId);
-                ctx.clearRect(0, 0, targetSlot.width, targetSlot.height);
+
+                ctx.clearRect(0, 0, slotSourceW, slotSourceH);
+
+                ctx.drawImage(
+                    inventorySprite,
+                    177, 113, slotSourceW, slotSourceH,
+                    0, 0, slotSourceW, slotSourceH
+                );
+
                 State[objectId][targetSlotId].status = "empty";
                 State[objectId][targetSlotId].spriteName = null;
                 State[objectId][targetSlotId].startTime = null;
+
+                targetSlot.style.outline = 'none';
+
+                drawSpriteOnTopOfTheStation(objectId, templateName);
+
 
             } else if (status === 'cooking') {
                 console.log('removed uncooked food');
 
                 if (State[objectId][targetSlotId].animationId) cancelAnimationFrame(State[objectId][targetSlotId].animationId);
 
-                ctx.clearRect(0, 0, targetSlot.width, targetSlot.height);
+                ctx.clearRect(0, 0, slotSourceW, slotSourceH);
+
+                ctx.drawImage(
+                    inventorySprite,
+                    177, 113, slotSourceW, slotSourceH,
+                    0, 0, slotSourceW, slotSourceH
+                )
                 State[objectId][targetSlotId].status = "empty";
                 State[objectId][targetSlotId].spriteName = null;
                 State[objectId][targetSlotId].startTime = null;
+
+                targetSlot.style.outline = 'none';
+
+                drawSpriteOnTopOfTheStation(objectId, templateName);
+
             }
         };
 
+
         State[objectId][targetSlotId].animationId = requestAnimationFrame((currentTime) =>
-            animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, targetSlotId, templateName)
+            animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, targetSlotId, templateName, slotSourceW, slotSourceH)
         );
     } else {
         console.log('No empty slots available!');
     }
 }
 
-export function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, targetSlotId, templateName) {
-    const elapsed = Math.floor((currentTime - State[objectId][targetSlotId].startTime) / 1000);
-    const timeLeft = Math.max(0, objectCoordinates[templateName].cookingTime - elapsed);
+export function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, targetSlotId, templateName, width, height) {
+    const totalCookingTime = objectCoordinates[templateName].cookingTime;
+
+    const startTime = State[objectId][targetSlotId].startTime;
+
+    const timeInMs = currentTime - startTime;
+
+    const elapsedSeconds = Math.floor(timeInMs / 1000);
+
+    const timeLeft = Math.max(0, totalCookingTime - elapsedSeconds);
+
+
 
     // Clear and redraw
-    ctx.clearRect(0, 0, targetSlot.width, targetSlot.height);
-    drawSpriteOnModal(spriteName, targetSlot, ctx);
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.drawImage(
+        inventorySprite,
+        177, 113, width, height,
+        0, 0, width, height
+    )
+
+    drawSpriteOnModal(spriteName, targetSlot, ctx, width, height);
 
     // Draw countdown timer
-    ctx.save();
-    ctx.font = 'bold 24px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`${timeLeft}s`, targetSlot.width / 2, targetSlot.height / 2);
-    ctx.restore();
+    // ctx.save();
+    // ctx.font = `bold 4px 'Pixelify Sans', sans-serif`;
+    // ctx.textAlign = 'center';
+    // ctx.textBaseline = 'middle';
+    // ctx.fillText(`${timeLeft}s`, width / 2, height / 2);
+    // ctx.restore();
 
     if (timeLeft > 0) {
+
+        const frameDuration = 125;
+
+        const totalFrames = timerFrames.ongoing.length;
+
+        const frameIndex = Math.floor(timeInMs / frameDuration) % totalFrames;
+
+        if (timerFrames.ongoing[frameIndex]) {
+            drawTimer(ctx, timerFrames.ongoing[frameIndex], width, height);
+        }
+
         State[objectId][targetSlotId].animationId = requestAnimationFrame((time) =>
-            animateTimer(time, spriteName, ctx, targetSlot, objectId, targetSlotId, templateName)
+            animateTimer(time, spriteName, ctx, targetSlot, objectId, targetSlotId, templateName, width, height)
         );
     } else {
         console.log("cooked food");
         // clear and reset for next item
         State[objectId][targetSlotId].animationId = null;
         State[objectId][targetSlotId].status = 'cooked';
-        targetSlot.style.borderColor = '';
 
-        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(0, targetSlot.height - 20, targetSlot.width, 20);
-        ctx.fillStyle = '#fff';
-        ctx.font = '12px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Cooked', targetSlot.width / 2, targetSlot.height - 6);
+        targetSlot.style.outline = '2px solid lime';
+
+        // ctx.fillStyle = 'black';
+        // ctx.font = `bold 6px 'Pixelify Sans', sans-serif`;
+        // ctx.textAlign = 'center';
+        // ctx.fillText('Cooked', width / 2, height - 6);
+
     }
 }
 
@@ -517,7 +744,7 @@ export function updateCookedFoodCount(foodName) {
 }
 
 
-export function refillSlotsToPreviousState(objectId, unlockedSlots, templateName) {
+export function refillSlotsToPreviousState(objectId, unlockedSlots, templateName, width, height) {
     const slots = ['slot-1', 'slot-2', 'slot-3', 'slot-4'];
     State[objectId] ??= {};
     for (let i = 0; i < slots.length; i++) {
@@ -527,14 +754,16 @@ export function refillSlotsToPreviousState(objectId, unlockedSlots, templateName
         let slotId = slots[i];
         const slotCanvas = document.querySelector(`#${slotId}`);
         if (slotCanvas && State[objectId][slotId]) {
-            redrawSlot(slotId, objectId, slotCanvas, templateName);
+            redrawSlot(slotId, objectId, slotCanvas, templateName, width, height);
         }
     }
 };
 
-export function redrawSlot(slotId, objectId, slotCanvas, templateName) {
+export function redrawSlot(slotId, objectId, slotCanvas, templateName, width, height) {
     const slotData = State[objectId][slotId];
     const ctx = slotCanvas.getContext('2d');
+    const totalCookingTime = objectCoordinates[templateName].cookingTime;
+
 
     slotCanvas.onclick = () => {
         const status = State[objectId][slotId].status;
@@ -547,20 +776,38 @@ export function redrawSlot(slotId, objectId, slotCanvas, templateName) {
             console.log('cookedPatty count:', newCount);
 
             if (slotData.animationId) cancelAnimationFrame(slotData.animationId);
-            ctx.clearRect(0, 0, slotCanvas.width, slotCanvas.height);
+            ctx.clearRect(0, 0, width, height);
+            ctx.drawImage(
+                inventorySprite,
+                177, 113, width, height,
+                0, 0, width, height
+            )
             slotData.status = "empty";
             slotData.spriteName = null;
             slotData.startTime = null;
+
+            slotCanvas.style.border = 'none';
+
 
         } else if (status === 'cooking') {
             console.log('removed uncooked food');
 
             if (slotData.animationId) cancelAnimationFrame(slotData.animationId);
 
-            ctx.clearRect(0, 0, slotCanvas.width, slotCanvas.height);
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.drawImage(
+                inventorySprite,
+                177, 113, width, height,
+                0, 0, width, height
+            )
+
             slotData.status = "empty";
             slotData.spriteName = null;
             slotData.startTime = null;
+
+            slotCanvas.style.border = 'none';
+
         }
     };
 
@@ -568,52 +815,89 @@ export function redrawSlot(slotId, objectId, slotCanvas, templateName) {
     if (slotData.status === 'cooking' && slotData.startTime) {
 
         const now = performance.now();
-        const elapsed = Math.floor((now - slotData.startTime) / 1000);
-        const timeLeft = Math.max(0, objectCoordinates[templateName].cookingTime - elapsed);
+        const timeInMs = now - slotData.startTime;
+        const elapsedSeconds = Math.floor(timeInMs / 1000);
+        const timeLeft = Math.max(0, totalCookingTime - elapsedSeconds);
 
-        ctx.clearRect(0, 0, slotCanvas.width, slotCanvas.height);
-        drawSpriteOnModal(slotData.spriteName, slotCanvas, ctx);
+        ctx.clearRect(0, 0, width, height);
 
-        ctx.save();
-        ctx.font = 'bold 24px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`${timeLeft}s`, slotCanvas.width / 2, slotCanvas.height / 2);
-        ctx.restore();
+        ctx.drawImage(
+            inventorySprite,
+            177, 113, width, height,
+            0, 0, width, height
+        );
+
+        drawSpriteOnModal(slotData.spriteName, slotCanvas, ctx, width, height);
+
+        // ctx.save();
+        // ctx.font = `bold 6px 'Pixelify Sans', sans-serif`;
+        // ctx.textAlign = 'center';
+        // ctx.textBaseline = 'middle';
+        // ctx.fillText(`${timeLeft}s`, width / 2, height / 2);
+        // ctx.restore();
 
         if (timeLeft > 0) {
+
+            const frameDuration = 125;
+            const totalFrames = timerFrames.ongoing.length;
+            const frameIndex = Math.floor(timeInMs / frameDuration) % totalFrames;
+
+            if (timerFrames.ongoing[frameIndex]) {
+                drawTimer(ctx, timerFrames.ongoing[frameIndex], width, height);
+            }
+
             slotData.animationId = requestAnimationFrame((currentTime) =>
-                animateTimer(currentTime, slotData.spriteName, ctx, slotCanvas, objectId, slotId, templateName)
+                animateTimer(currentTime, slotData.spriteName, ctx, slotCanvas, objectId, slotId, templateName, width, height)
             );
+        } else {
+
+            slotData.status = 'cooked';
+
+            targetSlot.style.outline = '2px solid lime';
+
+            // ctx.fillStyle = 'black';
+            // ctx.font = `bold 4px 'Pixelify Sans', sans-serif`;
+            // ctx.textAlign = 'center';
+            // ctx.fillText('Done', width / 2, height - 2);
+
         }
     } else if (slotData.status === 'cooked') {
-        ctx.clearRect(0, 0, slotCanvas.width, slotCanvas.height);
-        drawSpriteOnModal(slotData.spriteName, slotCanvas, ctx);
 
-        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(0, slotCanvas.height - 20, slotCanvas.width, 20);
-        ctx.fillStyle = '#fff';
-        ctx.font = '12px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Cooked', slotCanvas.width / 2, slotCanvas.height - 6);
+        ctx.clearRect(0, 0, width, height);
 
-        slotCanvas.style.borderColor = '';
+        drawSpriteOnModal(slotData.spriteName, slotCanvas, ctx, width, height);
+
+        targetSlot.style.outline = '2px solid lime';
+
+        // ctx.fillStyle = 'black';
+        // ctx.font = `bold 6px 'Pixelify Sans', sans-serif`;
+        // ctx.textAlign = 'center';
+        // ctx.fillText('Cooked', width / 2, height - 6);
+
     }
 }
 
-export function drawLockedSlots(slotCanvas) {
+export function drawLockedSlots(slotCanvas, width, height) {
     const ctx = slotCanvas.getContext('2d');
 
-    ctx.fillStyle = 'rgba(0,0,0,0.8)';
-    ctx.fillRect(0, 0, slotCanvas.width, slotCanvas.height);
-
-    ctx.fillStyle = "#888";
-    ctx.font = "30px Arial";
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('Locked', slotCanvas.width / 2, slotCanvas.height / 2);
-    slotCanvas.style.border = '2px solid #333';
+    ctx.drawImage(
+        lockSprite,
+        83, 61, 90, 128,
+        (width / 2) - (6 / 2), (height / 2) - (6 / 2), 6, 6
+    )
     slotCanvas.style.cursor = 'not-allowed';
 
     slotCanvas.onclick = null;
 }
+
+export function drawTimer(ctx, frame, width, height) {
+
+    const timerW = 8;
+    const timerH = 10;
+
+    ctx.drawImage(
+        timerSprite,
+        frame.x, frame.y, frame.w, frame.h,
+        (width / 2) - (timerW / 2), (height / 2) - (timerH / 2), timerW, timerH
+    )
+};
