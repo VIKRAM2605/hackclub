@@ -124,121 +124,103 @@ export const grillTemplate = `
 `;
 
 export const npcConvoTemplate = `
-<div id="npc-main" style="
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 450px;
-    background: #1e1e24;
-    color: #e0e0e0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding: 0;
-    border-radius: 12px;
-    border: 1px solid #333;
-    z-index: 1000;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+<div id="npc-modal-wrapper" style="
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
 ">
-    <div style="
-        display: flex;
-        justify-content: flex-end;
-        padding: 10px;
-        background: #25252d;
-        border-bottom: 1px solid #333;
-    ">
-        <button id="close-modal" style="
-            background: transparent;
-            border: none;
-            color: #888;
-            font-size: 18px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: color 0.2s;
-        " onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#888'">
-            ✕
-        </button>
-    </div>
+    <div style="position: relative; width: 480px; height: 320px;">
+        
+        <canvas id="npc-bg-canvas" width="480" height="320" style="
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            z-index: 0;
+            image-rendering: pixelated;
+        "></canvas>
 
-    <div id="npc-content" style="
-        display: flex;
-        padding: 20px;
-        gap: 20px;
-        align-items: flex-start;
-    ">
-        <div id="npc-left" style="
-            flex-shrink: 0;
-            width: 120px;
-            height: 120px;
-            background: #111;
-            border-radius: 8px;
-            border: 2px solid #333;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        ">
-            <canvas id="npc-sprite" style="width: 100%; height: 100%; object-fit: contain;"></canvas>
+        <div style="position: absolute; top: 12px; right: 12px; z-index: 20; cursor: pointer;">
+             <canvas id="close-modal-canvas" width="24" height="24" style="image-rendering: pixelated;"></canvas>
         </div>
 
-        <div id="npc-right" style="
-            flex-grow: 1;
+        <div style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 120px;
+            padding: 30px; 
+            box-sizing: border-box;
+            gap: 20px;
+            font-family: 'Pixelify Sans', monospace;
         ">
-            <div id="npc-dialog" style="
-                background: #2a2a35;
-                padding: 10px 12px;
-                border-radius: 6px;
-                font-size: 14px;
-                line-height: 1.4;
-                color: #ccc;
-                margin-bottom: 15px;
-                min-height: 50px;
+            
+             <div style="
+                width: 120px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
             ">
+                <canvas id="npc-sprite" width="100" height="150" style="
+                    width: 100px; 
+                    height: 150px; 
+                    object-fit: contain; 
+                    image-rendering: pixelated;
+                "></canvas>
             </div>
 
-            <div id="npc-foods" style="margin-bottom: 10px;"></div>
-
-            <div id="serve-div" style="
+            <div style="
+                flex: 1;
                 display: flex;
-                gap: 10px;
-                margin-top: auto;
+                flex-direction: column;
             ">
-                <button id="unserve-button" style="
-                    flex: 1;
+\                <div id="npc-dialog" style="
+                    height: 70px;
+                    margin-bottom: 10px;
                     padding: 8px;
-                    border: none;
-                    border-radius: 4px;
-                    background: #3a3a45;
-                    color: #fff;
-                    cursor: pointer;
-                    font-size: 12px;
-                    font-weight: 600;
-                    transition: background 0.2s;
-                " onmouseover="this.style.background='#4a4a55'" onmouseout="this.style.background='#3a3a45'">
-                    Refuse Order
-                </button>
-                
-                <button id="serve-button" style="
+                    font-size: 14px;
+                    color: #333;
+                    line-height: 1.2;
+                    overflow-y: auto;
+                "></div>
+
+                <div id="npc-foods" style="
                     flex: 1;
-                    padding: 8px;
-                    border: none;
-                    border-radius: 4px;
-                    background: #2e8b57;
-                    color: #fff;
-                    cursor: pointer;
-                    font-size: 12px;
-                    font-weight: 600;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                    transition: background 0.2s;
-                " onmouseover="this.style.background='#3cb371'" onmouseout="this.style.background='#2e8b57'">
-                    Serve Order
-                </button>
+                    overflow-y: auto;
+                    margin-bottom: 10px;
+                "></div>
+
+                <div style="display: flex; gap: 15px; height: 40px; margin-top: auto;">
+                    
+                    <div style="position: relative; flex: 1; cursor: pointer;">
+                        <canvas id="refuse-btn-canvas" width="130" height="40" style="
+                            width: 100%; 
+                            height: 100%; 
+                            image-rendering: pixelated;
+                        "></canvas>
+                    </div>
+                    
+\                    <div style="position: relative; flex: 1; cursor: pointer;">
+                        <canvas id="serve-btn-canvas" width="130" height="40" style="
+                            width: 100%; 
+                            height: 100%; 
+                            image-rendering: pixelated;
+                        "></canvas>
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>

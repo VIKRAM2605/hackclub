@@ -6,11 +6,22 @@ coinSpriteSheet.src = 'assets/coin1-Photoroom.png';
 export function spawncoin() {
      const coin = document.createElement('canvas');
 
-     coin.width = 32;
-     coin.height = 32;
+     const baseCoinW = 16;
+     const baseCoinH = 16;
 
-     coin.style.width = '8px';
-     coin.style.height = '8px';
+     const scale = 4;
+
+     const dpr = window.devicePixelRatio || 1;
+
+     const logicalW = baseCoinW * dpr;
+     const logicalH = baseCoinH * dpr;
+
+     coin.width = logicalW * dpr;
+     coin.height = logicalW * dpr;
+
+     coin.style.width = `${logicalW}px`;
+     coin.style.height = `${logicalH}px`;
+
      coin.id = `coin-canvas-${Date.now()}`;
      coin.className = 'coin';
 
@@ -21,11 +32,11 @@ export function spawncoin() {
      coinctx.drawImage(
           coinSpriteSheet,
           215, 228, 212, 195,
-          0, 0, 32, 32
+          0, 0, baseCoinW, baseCoinH
      )
 
-     const centerX = 400;
-     const centerY = 120;
+     const centerX = 800;
+     const centerY = 250;
      const radius = 60;
 
      const angle = Math.random() * Math.PI * 2;

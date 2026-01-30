@@ -1,3 +1,4 @@
+import { baseH, baseW } from "./CharacterMovement.js";
 import { gameRunning } from "./GameMechanics.js";
 import { npcsServedCount } from "./NpcStateManagement.js";
 import { randomInt } from "./RandomCoinDrops.js";
@@ -42,10 +43,10 @@ export function updateSpills(currentTime, canvas) {
         const bottomMargin = 50;
         const sideMargin = 50;
         const minX = sideMargin;
-        const maxX = canvas.width - sideMargin - 50;
+        const maxX = baseW - sideMargin - 50;
 
         const minY = topMargin;
-        const maxY = canvas.height - bottomMargin - 50;
+        const maxY = baseH - bottomMargin - 50;
 
         const randomX = Math.floor(Math.random() * (maxX - minX) + minX);
         const randomY = Math.floor(Math.random() * (maxY - minY) + minY);

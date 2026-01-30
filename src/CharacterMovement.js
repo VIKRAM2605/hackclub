@@ -457,7 +457,6 @@ export function gameLoop(currentTime) {
     updateSpills(currentTime, canvas);
     drawSpills(ctx);
 
-
     renderObject();
 
     Object.entries(objectCoordinates).forEach(([key, value]) => {
