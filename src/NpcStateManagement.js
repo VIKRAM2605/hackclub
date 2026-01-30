@@ -25,31 +25,102 @@ export const npcQueuePosition = [180, 210, 240];
 export let queuePointer = 0;
 
 const spriteSheet = new Image();
-spriteSheet.src = 'assets/Chef A2.png';
+spriteSheet.src = 'assets/01-generic.png';
 
 const npcSprites = {
     npc1: {
-        idle: { x: 38, y: 16, w: 20, h: 34 },
-        walk: [
-            { x: 38, y: 16, w: 20, h: 34 },
-            { x: 38, y: 58, w: 20, h: 34 },
-            { x: 70, y: 56, w: 20, h: 34 },
-            { x: 104, y: 58, w: 20, h: 34 },
-            { x: 134, y: 58, w: 20, h: 34 },
+        ordering: { x: 19, y: 62, w: 13, h: 17 },
+        walking: [
+            { x: 4, y: 44, w: 10, h: 16 },
+            { x: 21, y: 43, w: 10, h: 17 },
+            { x: 36, y: 44, w: 10, h: 16 },
         ]
-    }
+    },
+    npc2: {
+        ordering: { x: 20, y: 136, w: 13, h: 17 },
+        walking: [
+            { x: 3, y: 118, w: 10, h: 16},
+            { x: 21, y: 117, w: 10, h: 17 },
+            { x: 37, y: 116, w: 10, h: 16 },
+        ]
+    },
+    npc3: {
+        ordering: { x: 68, y: 60, w: 13, h: 18 },
+        walking: [
+            { x: 52, y: 43, w: 10, h: 16 },
+            { x: 69, y: 41, w: 10, h: 17 },
+            { x: 84, y: 42, w: 10, h: 16 },
+        ]
+    },
+    npc4: {
+        ordering: { x: 68, y: 136, w: 13, h: 17 },
+        walking: [
+            { x: 53, y: 117, w: 10, h: 16 },
+            { x: 69, y: 118, w: 10, h: 17 },
+            { x: 84, y: 118, w: 10, h: 16 },
+        ]
+    },
+    npc5: {
+        ordering: { x: 113, y: 59, w: 13, h: 17 },
+        walking: [
+            { x: 97, y: 44, w: 12, h: 16 },
+            { x: 114, y: 41, w: 11, h: 17 },
+            { x: 128, y: 41, w: 12, h: 16 },
+        ]
+    },
+    npc6: {
+        ordering: { x: 114, y: 136, w: 13, h: 17 },
+        walking: [
+            { x: 98, y: 117, w: 12, h: 16 },
+            { x: 114, y: 117, w: 11, h: 17 },
+            { x: 130, y: 117, w: 12, h: 16 },
+        ]
+    },
+    npc7: {
+        ordering: { x: 162, y: 56, w: 13, h: 17 },
+        walking: [
+            { x: 146, y: 42, w: 10, h: 16 },
+            { x: 163, y: 37, w: 10, h: 17 },
+            { x: 180, y: 40, w: 10, h: 16 },
+        ]
+    },
+    npc8: {
+        ordering: { x: 163, y: 133, w: 13, h: 17 },
+        walking: [
+            { x: 147, y: 116, w: 10, h: 16 },
+            { x: 163, y: 114, w: 10, h: 17 },
+            { x: 180, y: 115, w: 10, h: 16 },
+        ]
+    },
+    npc9: {
+        ordering: { x: 210, y: 55, w: 13, h: 17 },
+        walking: [
+            { x: 193, y: 38, w: 12, h: 16 },
+            { x: 210, y: 37, w: 11, h: 17 },
+            { x: 225, y: 38, w: 12, h: 16 },
+        ]
+    },
+    npc10: {
+        ordering: { x: 211, y: 131, w: 13, h: 16 },
+        walking: [
+            { x: 195, y: 115, w: 12, h: 16 },
+            { x: 211, y: 112, w: 11, h: 17 },
+            { x: 226, y: 112, w: 12, h: 16 },
+        ]
+    },
 };
+
+const animationSpeed = 40;
+
 const orderWeights = {
     'cookedPatty': 0.5,
     'cookedHotDog': 0.3,
-    // 'cookedBurger': 0.2,
-    // 'fries': 0.1,
 };
 
 const totalWeight = Object.values(orderWeights).reduce((sum, w) => sum + w, 0);
 
 export function spawnNpc(currentTime) {
-    if(gameRunning === false) return;
+    if (gameRunning === false) return;
 
     const npcId = `npc_${Date.now()}`;
 
@@ -131,7 +202,7 @@ export function getNpcDialog(isKiller, category) {
 
 export function updateNpcQueue(deltaTime) {
     if (npcQueue.length === 0) return;
-    if(gameRunning ===false)return;
+    if (gameRunning === false) return;
 
     for (let i = 0; i < npcQueue.length; i++) {
         const targetX = 500 - (2 * 50);
@@ -174,7 +245,7 @@ export function updateNpcQueue(deltaTime) {
 
 export function updateLeavingNpcs(deltaTime) {
     if (leavingNpcs.length == 0) return;
-    if(gameRunning === false) return;
+    if (gameRunning === false) return;
     const exitTargetX = 600;
     for (let i = leavingNpcs.length - 1; i >= 0; i--) {
         const npc = leavingNpcs[i];
@@ -201,43 +272,89 @@ export function decreasePatienceTime() {
 
 
 export function shouldSpawnNpc(currentTime) {
-    if(gameRunning === false) return;
+    if (gameRunning === false) return;
     return (currentTime - lastSpawnTime) > nextSpawnDelay && queuePointer < 3;
 }
 
+export function initNpc(customer) {
+    if (!customer.skin) {
+        const keys = Object.keys(npcSprites);
+        customer.skin = keys[Math.floor(Math.random() * keys.length)];
 
+        customer.animFrame = 0;
+        customer.animTimer = 0;
+    }
+}
+
+export function updateAnimation(customer) {
+    customer.animTimer++;
+    if (customer.animTimer > animationSpeed) {
+        customer.animTimer = 0;
+
+        customer.animFrame = (customer.animFrame + 1) % 3;
+    }
+}
+
+export function animateNpc(ctx, frame, x, y, targetW, targetH) {
+
+    if (!frame) return;
+
+    ctx.drawImage(
+        spriteSheet,
+        frame.x, frame.y, frame.w, frame.h,
+        x, y, targetW, targetH
+    )
+
+}
 
 export function drawQueue(ctx) {
+    ctx.imageSmoothingEnabled = false;
 
     for (let i = 0; i < leavingNpcs.length; i++) {
         const customer = leavingNpcs[i];
 
-        if (customer.status === 'served') ctx.fillStyle = '#88ccaa';
-        else ctx.fillStyle = '#ff5555';
+        initNpc(customer);
+        updateAnimation(customer);
 
-        ctx.fillRect(customer.positionX, customer.positionY, 30, 40);
+        const spriteData = npcSprites[customer.skin];
+        const frame = spriteData.walking[customer.animFrame];
 
-        ctx.fillStyle = 'white';
-        ctx.font = '10px Arial';
-        ctx.fillText(customer.status === 'served' ? "happy" : " angry", customer.positionX + 15, customer.positionY + 20);
+        animateNpc(ctx, frame, customer.positionX, customer.positionY, 20, 34);
+
     }
 
     for (let i = 0; i < npcQueue.length; i++) {
         const customer = npcQueue[i];
 
-        ctx.fillStyle = i === 0 ? '#ffaa00' : '#44aa88';
-        ctx.fillRect(customer.positionX, customer.positionY, 30, 40);
+        initNpc(customer);
+        updateAnimation(customer);
 
-        ctx.fillStyle = 'white';
-        ctx.font = '12px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(customer.order, customer.positionX + 15, customer.positionY + 20);
+        const spriteData = npcSprites[customer.skin];
+        let frame;
 
         if (customer.status === "ordering") {
+            frame = spriteData.ordering;
+        } else {
+            updateAnimation(customer);
+            frame = spriteData.walking[customer.animFrame];
+        }
+
+        animateNpc(ctx, frame, customer.positionX, customer.positionY, 20, 34);
+
+        if (customer.status === "ordering" && i == 0) {
+            const barWidth = 30;
+            const spriteWidth = 20;
+            const barHeight = 4;
+            const offsetX = 0
+
+            const centerX = customer.positionX + (spriteWidth / 2);
+
+            const startX = centerX - (barWidth/2) + offsetX;
+
             ctx.fillStyle = 'red';
-            ctx.fillRect(customer.positionX, customer.positionY - 8, 30, 4);
+            ctx.fillRect(startX, customer.positionY - 8, barWidth, barHeight);
             ctx.fillStyle = customer.patience > 10 ? 'green' : 'orange';
-            ctx.fillRect(customer.positionX, customer.positionY - 8, 30 * (customer.patience / 25), 4);
+            ctx.fillRect(startX, customer.positionY - 8, barWidth * (customer.patience / 25), barHeight);
         }
     }
 }
@@ -270,7 +387,7 @@ export function isFirstNpcIntaractable(x, y, maxDistance = 60) {
 export function openNpcModal(template) {
     if (!template || !npcQueue[0] || npcQueue[0].status !== "ordering") return;
     let modal = document.getElementById('main-modal');
-    if(modal)return;
+    if (modal) return;
     modal = document.createElement('div');
     modal.id = "main-modal";
     modal.innerHTML = template;
@@ -403,7 +520,7 @@ export function openNpcModal(template) {
 }
 export function drawNPCSpriteOnModal(spriteName, canvas, ctx) {
 
-    const sprite = npcSprites[spriteName]['idle'];
+    const sprite = npcSprites[spriteName]['ordering'];
     console.log(sprite);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -412,7 +529,7 @@ export function drawNPCSpriteOnModal(spriteName, canvas, ctx) {
         sprite.x, sprite.y,
         sprite.w, sprite.h,
         0, 0,
-        sprite.w * 3, sprite.h
+        sprite.w, sprite.h
     );
 
 }
