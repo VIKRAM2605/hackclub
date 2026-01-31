@@ -13,8 +13,8 @@ export function spawncoin() {
 
      const dpr = window.devicePixelRatio || 1;
 
-     const logicalW = baseCoinW * dpr;
-     const logicalH = baseCoinH * dpr;
+     const logicalW = baseCoinW * scale;
+     const logicalH = baseCoinH * scale;
 
      coin.width = logicalW * dpr;
      coin.height = logicalW * dpr;

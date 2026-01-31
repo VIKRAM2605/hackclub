@@ -138,9 +138,9 @@ export const npcConvoTemplate = `
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(2px);
 ">
-    <div style="position: relative; width: 480px; height: 320px;">
+    <div style="position: relative; width: 508px; height: 276px;">
         
-        <canvas id="npc-bg-canvas" width="480" height="320" style="
+        <canvas id="npc-bg-canvas" style="
             position: absolute; 
             top: 0; 
             left: 0; 
@@ -167,7 +167,6 @@ export const npcConvoTemplate = `
         ">
             
              <div style="
-                width: 120px;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
@@ -185,21 +184,29 @@ export const npcConvoTemplate = `
                 flex: 1;
                 display: flex;
                 flex-direction: column;
+                overflow: hidden; 
             ">
-\                <div id="npc-dialog" style="
-                    height: 70px;
-                    margin-bottom: 10px;
-                    padding: 8px;
-                    font-size: 14px;
-                    color: #333;
+                <div id="npc-dialog" style="
+                    height: 50px;
+                    padding: 10px;
+                    padding-bottom:2px;
+                    font-size: 18px;
+                    color: #3e2723; 
+                    font-weight: bold;
                     line-height: 1.2;
                     overflow-y: auto;
+                    margin-bottom: 10px;
                 "></div>
 
                 <div id="npc-foods" style="
+                    display: flex;
+                    flex-direction: row;
                     flex: 1;
-                    overflow-y: auto;
+                    overflow-x: hidden;
+                    align-items: center;
+                    gap: 10px;
                     margin-bottom: 10px;
+                    padding-bottom: 5px;
                 "></div>
 
                 <div style="display: flex; gap: 15px; height: 40px; margin-top: auto;">
@@ -212,7 +219,7 @@ export const npcConvoTemplate = `
                         "></canvas>
                     </div>
                     
-\                    <div style="position: relative; flex: 1; cursor: pointer;">
+                    <div style="position: relative; flex: 1; cursor: pointer;">
                         <canvas id="serve-btn-canvas" width="130" height="40" style="
                             width: 100%; 
                             height: 100%; 

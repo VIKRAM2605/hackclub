@@ -47,10 +47,10 @@ const grillSlotPositions = [
 ]
 
 const intaractableGrillPositionsForPatty = [
-    { col: -0.19, row: -0.32 }, // Top-Left (Moves Left & Up)
-    { col: 0.24, row: -0.32 }, // Top-Right (Moves Right & Up)
-    { col: -0.19, row: -0.08 },  // Bottom-Left (Moves Left & Down)
-    { col: 0.24, row: -0.08 }   // Bottom-Right (Moves Right & Down)
+    { col: -0.19, row: -0.32 },
+    { col: 0.24, row: -0.32 },
+    { col: -0.19, row: -0.08 },
+    { col: 0.24, row: -0.08 }
 ];
 
 
@@ -592,16 +592,24 @@ export function canvasSetupForCookingModal(canvas, width, height, scale = 5) {
 
 };
 
-export function drawSpriteOnModal(spriteName, canvas, ctx, width, height) {
+export function drawSpriteOnModal(spriteName, canvas, ctx, width, height, from) {
 
     const sprite = sprites[spriteName];
+    let spriteW, spriteH;
+    if (from === 'npc') {
+        spriteW = sprite.w + 20;
+        spriteH = sprite.h + 20;
+    } else {
+        spriteW = sprite.w;
+        spriteH = sprite.h;
+    }
 
     ctx.drawImage(
         spriteSheet,
         sprite.x, sprite.y,
         sprite.w, sprite.h,
-        (width / 2) - (sprite.w / 2), (height / 2) - (sprite.h / 2),
-        sprite.w, sprite.h
+        (width / 2) - (spriteW/ 2), (height / 2) - (spriteH / 2),
+        spriteW, spriteH
     );
 
 }
