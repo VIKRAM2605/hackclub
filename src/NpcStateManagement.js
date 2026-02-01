@@ -12,12 +12,12 @@ let minSpawnDelay = 2000;
 let lastSpawnTime = 0;
 let nextSpawnDelay = 4000 + Math.random() * spawnDelayTime;
 
-let patience = 25;
+export let patience = 25;
 let minPatience = 10;
 
 export let npcsServedCount = 0;
 
-let killerChance = 0.05;
+export let killerChance = 0.15;
 
 export const npcQueue = [];
 export const leavingNpcs = [];

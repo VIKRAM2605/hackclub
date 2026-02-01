@@ -45,6 +45,12 @@ const grillSlotPositions = [
     { x: 14, y: 17 },
     { x: 28, y: 17 }
 ]
+const stoveSlotPositions = [
+    { x: 13, y: 3 },
+    { x: 25, y: 3 },
+    { x: 13, y: 12 },
+    { x: 25, y: 12 }
+]
 
 const intaractableGrillPositionsForPatty = [
     { col: -0.19, row: -0.32 },
@@ -52,7 +58,19 @@ const intaractableGrillPositionsForPatty = [
     { col: -0.19, row: -0.08 },
     { col: 0.24, row: -0.08 }
 ];
+const intaractableGrillPositionsForHotDog = [
+    { col: -0.19, row: -0.32 },
+    { col: 0.24, row: -0.32 },
+    { col: -0.19, row: -0.08 },
+    { col: 0.24, row: -0.08 }
+];
 
+const intaractableStovePositionsForSoup = [
+    { col: -0.141, row: -0.50 },
+    { col: 0.24, row: -0.50 },
+    { col: -0.141, row: -0.20 },
+    { col: 0.24, row: -0.20 }
+];
 
 export const cookedFoodCount = {
     cookedPatty: 0,
@@ -109,6 +127,9 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
     const canvasMainSprite = document.getElementById('canvas-sprite');
     if (canvasMainSprite) {
         const ctxMainSprite = canvasMainSprite.getContext('2d');
+        if (objectId) {
+            canvasMainSprite.dataset.objectId = objectId;
+        }
         drawSpriteOnModal(templateName.slice(0, -1), canvasMainSprite, ctxMainSprite);
     }
 
@@ -378,7 +399,7 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
             if (e.key === 'Escape') modal.remove();
         });
     }
-    else if (templateName == 'grillLevel11') {
+    else if (templateName == 'grillLevel11' || templateName == 'grillLevel12' || templateName == 'gasStove1') {
         const grillModal = document.getElementById('grill-modal');
         const closeHitbox = document.getElementById('close-hitbox');
 
@@ -452,7 +473,17 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
             const cookedSourceH = 14;
             const ctxCookedSprite = canvasSetupForCookingModal(canvasCookedSprite, cookedSourceW, cookedSourceH);
             ctxCookedSprite.drawImage(inventorySprite, 177, 113, cookedSourceW, cookedSourceH, 0, 0, cookedSourceW, cookedSourceH);
-            drawSpriteOnModal('unCookedPatty', canvasCookedSprite, ctxCookedSprite, cookedSourceW, cookedSourceH);
+            let foodType;
+            if (templateName == 'grillLevel11') {
+                foodType = 'unCookedPatty';
+            }
+            else if (templateName == 'grillLevel12') {
+                foodType = 'unCookedHotDog'
+            }
+            else if (templateName == 'gasStove1') {
+                foodType = 'unCookedSoup'
+            }
+            drawSpriteOnModal(foodType, canvasCookedSprite, ctxCookedSprite, cookedSourceW, cookedSourceH);
 
             const slots = ['slot-1', 'slot-2', 'slot-3', 'slot-4'];
             const slotSourceW = 14;
@@ -478,7 +509,7 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
             canvasCookedSprite.style.cursor = 'pointer';
             canvasCookedSprite.addEventListener('click', () => {
                 console.log('clicked cooked patty');
-                addItemsToSlot('unCookedPatty', objectId, unlockedSlots, templateName);
+                addItemsToSlot(foodType, objectId, unlockedSlots, templateName);
             });
         });
     }
@@ -488,7 +519,16 @@ export function createModal(templateName, template, canvas, ctx, player, objectI
 export function drawSpriteOnTopOfTheStation(objectId, templateName) {
     const canvas = document.getElementById('canvas-sprite');
 
+    if (!canvas) return;
+
+    const canvasObjectId = parseInt(canvas.dataset.objectId);
+    if (canvasObjectId !== objectId) {
+        console.log(`Skipping draw - canvas belongs to objectId ${canvasObjectId}, but trying to draw for objectId ${objectId}`);
+        return;
+    }
+
     const ctx = canvas.getContext('2d');
+
 
     const width = 50;
     const height = 50;
@@ -510,7 +550,7 @@ export function drawSpriteOnTopOfTheStation(objectId, templateName) {
             const slotData = State[objectId][slotId];
 
             if (slotData && slotData.spriteName && (slotData.status === 'cooking' || slotData.status === 'cooked')) {
-                let sprite, pos, mainPos, stn, name;
+                let sprite, pos, name, foodSize;
 
                 if (slotData.status == 'cooked') {
                     name = slotData.spriteName.replace('unCooked', 'cooked');
@@ -520,13 +560,16 @@ export function drawSpriteOnTopOfTheStation(objectId, templateName) {
                     sprite = sprites[name];
                 }
 
-                if (templateName === 'grillLevel11') {
-                    stn = sprites['grillLevel1']
+                if (templateName === 'gasStove1') {
+                    pos = stoveSlotPositions[index];
+                    foodSize = 12;
+                } else {
                     pos = grillSlotPositions[index];
+                    foodSize = 6;
                 }
 
+
                 if (sprite && pos) {
-                    const foodSize = 6;
 
                     ctx.drawImage(
                         spriteSheet,
@@ -546,7 +589,7 @@ export function drawCookingSpriteOnMainCanvas(objectId, templateName) {
             const slotData = State[objectId][slotId];
 
             if (slotData && slotData.spriteName && (slotData.status === 'cooking' || slotData.status === 'cooked')) {
-                let pos, stn, name;
+                let pos, stn, name, size = 6;
 
                 if (slotData.status === 'cooked') {
                     name = slotData.spriteName.replace('unCooked', 'cooked');
@@ -558,10 +601,19 @@ export function drawCookingSpriteOnMainCanvas(objectId, templateName) {
                     stn = objectCoordinates['grillLevel11'];
                     pos = intaractableGrillPositionsForPatty[index];
                 }
+                else if (templateName === 'grillLevel12') {
+                    stn = objectCoordinates['grillLevel12'];
+                    pos = intaractableGrillPositionsForHotDog[index];
+                }
+                else if (templateName === 'gasStove1') {
+                    stn = objectCoordinates['gasStove1'];
+                    pos = intaractableStovePositionsForSoup[index];
+                    size = 12;
+                }
 
                 if (pos && stn) {
 
-                    drawSpriteFromSlotToMainCanvs(name, pos.col + stn.col, pos.row + stn.row, 6, 6);
+                    drawSpriteFromSlotToMainCanvs(name, pos.col + stn.col, pos.row + stn.row, size, size);
                 }
             }
         });
@@ -608,7 +660,7 @@ export function drawSpriteOnModal(spriteName, canvas, ctx, width, height, from) 
         spriteSheet,
         sprite.x, sprite.y,
         sprite.w, sprite.h,
-        (width / 2) - (spriteW/ 2), (height / 2) - (spriteH / 2),
+        (width / 2) - (spriteW / 2), (height / 2) - (spriteH / 2),
         spriteW, spriteH
     );
 
@@ -667,8 +719,8 @@ export function addItemsToSlot(spriteName, objectId, unlockedSlots, templateName
             if (status === 'cooked') {
                 console.log('picked up cooked food');
 
-                const newCount = updateCookedFoodCount(State[objectId][targetSlotId].spriteName);
-                console.log('cookedPatty count:', newCount);
+                const newCount = updateCookedFoodCount(State[objectId][targetSlotId].spriteName.replace('unCooked', 'cooked'));
+                console.log('count:', newCount);
 
                 if (State[objectId][targetSlotId].animationId) cancelAnimationFrame(State[objectId][targetSlotId].animationId);
 
@@ -836,8 +888,8 @@ export function redrawSlot(slotId, objectId, slotCanvas, templateName, width, he
         if (status === 'cooked') {
             console.log('picked up cooked food');
 
-            const newCount = updateCookedFoodCount(slotData.spriteName);
-            console.log('cookedPatty count:', newCount);
+            const newCount = updateCookedFoodCount(slotData.spriteName.replace('unCooked', 'cooked'));
+            console.log('cookedPatty count:', newCount, slotData.spriteName);
 
             if (slotData.animationId) cancelAnimationFrame(slotData.animationId);
             ctx.clearRect(0, 0, width, height);
@@ -916,6 +968,7 @@ export function redrawSlot(slotId, objectId, slotCanvas, templateName, width, he
             );
         } else {
             slotData.status = 'cooked';
+            slotData.spriteName.replace('unCooked', 'cooked')
 
             drawSpriteOnTopOfTheStation(objectId, templateName);
 

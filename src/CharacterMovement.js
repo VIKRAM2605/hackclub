@@ -65,6 +65,7 @@ export let player = {
     increaseCoinDropTime: 1,
     reducePattyCookTime: 1,
     reduceHotDogCookTime: 1,
+    reduceSoupCookTime: 1,
 };
 
 const keys = {
@@ -460,7 +461,7 @@ export function gameLoop(currentTime) {
     renderObject();
 
     Object.entries(objectCoordinates).forEach(([key, value]) => {
-        drawCookingSpriteOnMainCanvas(value.objectId,key);
+        drawCookingSpriteOnMainCanvas(value.objectId, key);
     });
 
     showHealth();

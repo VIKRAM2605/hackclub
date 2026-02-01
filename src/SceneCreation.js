@@ -13,6 +13,9 @@ export const sprites = {
     cookedHotDog: { x: 85, y: 18, w: 6, h: 11, sw: 6, sh: 11 },
     cookedPatty: { x: 66, y: 19, w: 10, h: 9, sw: 10, sh: 9 },
     unCookedPatty: { x: 212, y: 69, w: 10, h: 9, sw: 10, sh: 9 },
+    unCookedSoup: { x: 33, y: 177, w: 14, h: 15, sw: 14, sh: 15 },
+    cookedSoup: { x: 48, y: 177, w: 15, h: 15, sw: 15, sh: 15 },
+
     eggCatoonHorizontal: { x: 209, y: 34, w: 14, h: 13, sw: 14, sh: 13 },
     eggCatoonVertical: { x: 211, y: 48, w: 11, h: 16, sw: 11, sh: 16 },
     gasStove: { x: 98, y: 168, w: 29, h: 40, sw: 29, sh: 40 },

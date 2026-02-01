@@ -6,6 +6,7 @@ import { hideRetryPage } from "./RetryPage.js";
 import { hideShopBtn, showShopBtn } from "./ShopPage.js";
 
 let spawnInterval = null;
+export let UpperBoundForCoin = 120000
 export let gameRunning = false;
 export function startGame() {
     if (gameRunning) return;
@@ -19,7 +20,7 @@ export function startGame() {
     // Start spawning coins
     spawnInterval = setInterval(() => {
         spawncoin();
-    }, randomInt(60000, 120000));
+    }, randomInt(60000, UpperBoundForCoin));
 }
 
 export function pauseGame() {
@@ -33,7 +34,7 @@ export function pauseGame() {
 function coinClickHandler(e) {
     if (!gameRunning) return;
     if (e.target.classList.contains('coin')) {
-        addBalance(randomInt(1, 5));
+        addBalance(randomInt(30, 100));
         e.target.remove();
     }
 }
