@@ -74,7 +74,8 @@ const intaractableStovePositionsForSoup = [
 
 export const cookedFoodCount = {
     cookedPatty: 0,
-    cookedHotDog: 0
+    cookedHotDog: 0,
+    cookedSoup: 0,
 };
 
 export function toTitleCase(str) {

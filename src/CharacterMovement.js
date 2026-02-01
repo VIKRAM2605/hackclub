@@ -42,7 +42,7 @@ let debugCollision = false;
 
 export let player = {
     x: 64,
-    y: 192,
+    y: 100,
     width: 20,
     height: 38,
     spriteName: 'player',

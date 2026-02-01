@@ -44,7 +44,6 @@ export function showRetryPage() {
         console.log(finalTime);
     }
     retryPage.style.display = 'block';
-
      
 }
 

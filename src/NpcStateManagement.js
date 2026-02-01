@@ -231,7 +231,7 @@ export function updateNpcQueue(deltaTime) {
     if (gameRunning === false) return;
 
     for (let i = 0; i < npcQueue.length; i++) {
-        const targetX = 500 - (2 * 50);
+        const targetX = 325 - (2 * 50);
         const targetY = npcQueuePosition[i];
 
         //stop close to the target
