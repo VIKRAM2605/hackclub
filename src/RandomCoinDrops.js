@@ -6,8 +6,8 @@ coinSpriteSheet.src = 'assets/coin1-Photoroom.png';
 export function spawncoin() {
      const coin = document.createElement('canvas');
 
-     const baseCoinW = 16;
-     const baseCoinH = 16;
+     const baseCoinW = 22;
+     const baseCoinH = 22;
 
      const scale = 4;
 
@@ -35,8 +35,8 @@ export function spawncoin() {
           0, 0, baseCoinW, baseCoinH
      )
 
-     const centerX = 800;
-     const centerY = 250;
+     const centerX = 670;
+     const centerY = 100;
      const radius = 60;
 
      const angle = Math.random() * Math.PI * 2;

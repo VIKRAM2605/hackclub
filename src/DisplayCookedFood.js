@@ -11,10 +11,10 @@ const ctx = canvas.getContext('2d');
 export function showCookedFood() {
     if (gameRunning === false) return;
     const iconSize = 8;
-    const rightMargin = 20;
+    const rightMargin = 10;
     const spacing = 5;
 
-    const foodStartY = 40;
+    const foodStartY = 30;
 
     const columnWidth = 40;
     const rowHeight = 20;

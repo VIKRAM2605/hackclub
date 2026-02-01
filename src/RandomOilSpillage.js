@@ -8,8 +8,8 @@ const spillageSprite = new Image();
 spillageSprite.src = 'assets/oilspill.png';
 
 let nextSpillTime = 0;
-let minSpillSpawnTime = 1000;
-let maxSpillSpawnTime = 2000;
+let minSpillSpawnTime = 10000;
+let maxSpillSpawnTime = 50000;
 
 let globalPauseStartTime = 0;
 
@@ -40,7 +40,7 @@ export function updateSpills(currentTime, canvas) {
     }
     if (currentTime > nextSpillTime) {
         const topMargin = 50;
-        const bottomMargin = 50;
+        const bottomMargin = 100;
         const sideMargin = 50;
         const minX = sideMargin;
         const maxX = baseW - sideMargin - 50;

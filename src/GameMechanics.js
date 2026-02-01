@@ -1,4 +1,4 @@
-import { currentBalance, addBalance } from "./Wallet.js";
+import { currentBalance, addBalance, initWallet } from "./Wallet.js";
 import { pauseAllCoins, randomInt, removeAllCoins, resumeAllCoins, spawncoin } from "./RandomCoinDrops.js";
 import { pauseAllActiveSpills, removeAllActiveSpills, resumeAllPausedSpills } from "./RandomOilSpillage.js";
 import { showHealth } from "./HealthStateManagement.js";
@@ -51,9 +51,5 @@ export function resumeGame() {
 }
 
 export function quitGame() {
-    pauseGame();
-    removeAllCoins();
-    removeAllActiveSpills();
-    document.getElementById('canvas1').style.display = 'none';
-    hideShopBtn();
+    window.location.reload()
 }

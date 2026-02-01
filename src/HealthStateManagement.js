@@ -23,8 +23,8 @@ export function showHealth() {
 
     const displaySize = 16;
     const spacing = 2;
-    const startY = 20;
-    const rightMargin = 20;
+    const startY = 10;
+    const rightMargin = 10;
 
     const totalHealthBarWidth = (activeHearts * displaySize) + ((activeHearts - 1) * spacing);
 

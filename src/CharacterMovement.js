@@ -479,7 +479,7 @@ export function gameLoop(currentTime) {
 
     updateLeavingNpcs(deltaTime);
 
-    drawQueue(ctx);
+    drawQueue(ctx,deltaTime);
 
     const nearby = getNearByInteractables(player.x, player.y);
     const nearbyNpc = isFirstNpcIntaractable(player.x, player.y);

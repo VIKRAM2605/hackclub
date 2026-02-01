@@ -326,10 +326,13 @@ export function initNpc(customer) {
     }
 }
 
-export function updateAnimation(customer) {
-    customer.animTimer++;
-    if (customer.animTimer > animationSpeed) {
-        customer.animTimer = 0;
+export function updateAnimation(customer, deltaTime) {
+    customer.animTimer += deltaTime;
+
+    const frameInterval = 150;
+
+    if (customer.animTimer >= frameInterval) {
+        customer.animTimer -= frameInterval;
         customer.animFrame = (customer.animFrame + 1) % 3;
     }
 }
@@ -340,19 +343,21 @@ export function animateNpc(ctx, frame, x, y, targetW, targetH) {
         spriteSheet,
         frame.x, frame.y, frame.w, frame.h,
         x, y, targetW, targetH
-    )
+    );
 }
 
-export function drawQueue(ctx) {
+export function drawQueue(ctx, deltaTime = 0) {
     ctx.imageSmoothingEnabled = false;
 
     for (let i = 0; i < leavingNpcs.length; i++) {
         const customer = leavingNpcs[i];
         initNpc(customer);
-        updateAnimation(customer);
-
         const spriteData = npcSprites[customer.skin];
         const frame = spriteData.walking[customer.animFrame];
+
+        if (gameRunning === true) {
+            updateAnimation(customer, deltaTime);
+        }
 
         animateNpc(ctx, frame, customer.positionX, customer.positionY, 20, 34);
 
@@ -390,20 +395,21 @@ export function drawQueue(ctx) {
         if (customer.status === "ordering") {
             frame = spriteData.ordering;
         } else {
-            updateAnimation(customer);
+            if (gameRunning === true) {
+                updateAnimation(customer, deltaTime);
+            }
             frame = spriteData.walking[customer.animFrame];
         }
 
         animateNpc(ctx, frame, customer.positionX, customer.positionY, 20, 34);
 
-        if (customer.status === "ordering" && i == 0) {
+        if (customer.status === "ordering" && i === 0) {
             const barWidth = 30;
             const spriteWidth = 20;
             const barHeight = 4;
-            const offsetX = 0
+            const offsetX = 0;
 
             const centerX = customer.positionX + (spriteWidth / 2);
-
             const startX = centerX - (barWidth / 2) + offsetX;
 
             ctx.fillStyle = '#d32f2f';
@@ -682,7 +688,7 @@ export function openNpcModal(template) {
         currentOrder.forEach(item => {
             cookedFoodCount[item.food] -= item.quantity;
         });
-        
+
         processOrderPayment(currentOrder);
 
         npcQueue[0].dialog = getNpcDialog(npcQueue[0].isKiller, "served");

@@ -66,10 +66,10 @@ const intaractableGrillPositionsForHotDog = [
 ];
 
 const intaractableStovePositionsForSoup = [
-    { col: -0.141, row: -0.50 },
-    { col: 0.24, row: -0.50 },
-    { col: -0.141, row: -0.20 },
-    { col: 0.24, row: -0.20 }
+    { col: -0.19, row: -0.46 },
+    { col: 0.24, row: -0.46 },
+    { col: -0.18, row: -0.20 },
+    { col: 0.25, row: -0.20 }
 ];
 
 export const cookedFoodCount = {

@@ -10,8 +10,6 @@ import { displayBalance, hideBalance } from "./Wallet.js";
 showStartPage();
 hideBalance();
 hideRetryPage();
-const startButton = document.getElementById('start-button');
-
 
 export function handleStartGame() {
         hideStartPage();
