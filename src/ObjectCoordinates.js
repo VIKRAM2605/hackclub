@@ -1,6 +1,6 @@
 import { grillTemplate, shopTemplate } from "./InteractiveModals.js";
 import { drawSprite } from "./SceneCreation.js";
-import { createModal } from "./StateManagement.js";
+import { showCookingModal } from "./StateManagement.js";
 
 export const objectCoordinates = {
     grillLevel11: {
@@ -14,7 +14,7 @@ export const objectCoordinates = {
         onInteract: {
             onOpen: (canvas, ctx, player, unlockedSlots) => {
                 console.log("function call=>", canvas, ctx, player, unlockedSlots);
-                createModal('grillLevel11', grillTemplate, canvas, ctx, player, 1, unlockedSlots);
+                showCookingModal('grillLevel11', 1, unlockedSlots);
             },
         }
     },
@@ -29,7 +29,7 @@ export const objectCoordinates = {
         onInteract: {
             onOpen: (canvas, ctx, player, unlockedSlots) => {
                 console.log("function call=>", canvas, ctx, player, unlockedSlots);
-                createModal('grillLevel12', grillTemplate, canvas, ctx, player, 2, unlockedSlots);
+                showCookingModal('grillLevel12', 2, unlockedSlots);
             },
         }
     },
@@ -44,7 +44,7 @@ export const objectCoordinates = {
         onInteract: {
             onOpen: (canvas, ctx, player, unlockedSlots) => {
                 console.log("function call=>", canvas, ctx, player, unlockedSlots);
-                createModal('gasStove1', grillTemplate, canvas, ctx, player, 3, unlockedSlots);
+                showCookingModal('gasStove1', 3, unlockedSlots);
             },
         }
     },
@@ -133,7 +133,7 @@ export const objectCoordinates = {
         offsetX: 0, offsetY: 0,
     },
     bench11: {
-        col: 6.75, row: 5.1, collisionWidth: 47, collisionHeight: 32,
+        col: 6.75, row: 5.1, collisionWidth: 70, collisionHeight: 30,
         offsetX: 0, offsetY: 0,
     },
     payment1: {

@@ -1,34 +1,74 @@
 import { handleStartGame } from "./Main.js";
 import { hidePauseMenu } from "./PauseMenu.js";
 import { showSettingsPage } from "./Settings.js";
+import { showHowToPlay } from "./HowToPlay.js";
 
-const settingsSprite = new Image();
-settingsSprite.src = 'assets/Settings.png';
+function drawPixelButton(canvas, text, theme, dpr, scale, isDisabled = false) {
+    if (!canvas) return;
 
-const inventorySprite = new Image();
-inventorySprite.src = 'assets/Inventory.png';
+    const ctx = canvas.getContext('2d');
 
-const buttonsSprite = new Image();
-buttonsSprite.src = 'assets/Buttons.png';
+    const logicalW = 130;
+    const logicalH = 40;
 
-const imagesLoaded = () => {
-    return new Promise((resolve) => {
-        let loadedCount = 0;
-        const totalImages = 2;
-        const onload = () => {
-            loadedCount++;
-            if (loadedCount === totalImages) resolve();
-        };
+    canvas.width = logicalW * dpr * scale;
+    canvas.height = logicalH * dpr * scale;
+    canvas.style.width = `${logicalW}px`;
+    canvas.style.height = `${logicalH}px`;
 
-        if (inventorySprite.complete) loadedCount++;
-        else inventorySprite.onload = onload;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr * scale, dpr * scale);
+    ctx.imageSmoothingEnabled = false;
 
-        if (buttonsSprite.complete) loadedCount++;
-        else buttonsSprite.onload = onload;
+    const colors = {
+        green: { main: '#4caf50', light: '#80e27e', dark: '#087f23', border: '#1b5e20', text: '#fff' },
+        red: { main: '#d32f2f', light: '#ff6659', dark: '#9a0007', border: '#5d1010', text: '#fff' },
+        gray: { main: '#555555', light: '#777777', dark: '#333333', border: '#222222', text: '#aaaaaa' },
+        
+        blue: { main: '#2196f3', light: '#64b5f6', dark: '#0d47a1', border: '#1565c0', text: '#fff' },
+        orange: { main: '#ff9800', light: '#ffb74d', dark: '#e65100', border: '#bf360c', text: '#fff' }
+    };
 
-        if (loadedCount === totalImages) resolve();
-    });
-};
+    let p = isDisabled ? colors.gray : colors[theme];
+    if (!p) p = colors.gray;
+
+    const w = logicalW;
+    const h = logicalH;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Border
+    ctx.fillStyle = p.border;
+    ctx.fillRect(2, 0, w - 4, h);
+    ctx.fillRect(0, 2, w, h - 4);
+    ctx.fillRect(1, 1, w - 2, h - 2);
+
+    // Main Body
+    ctx.fillStyle = p.main;
+    ctx.fillRect(2, 2, w - 4, h - 4);
+
+    // Highlights
+    ctx.fillStyle = p.light;
+    ctx.fillRect(2, 2, w - 6, 2);
+    ctx.fillRect(2, 2, 2, h - 6);
+
+    // Shadows
+    ctx.fillStyle = p.dark;
+    ctx.fillRect(4, h - 4, w - 6, 2);
+    ctx.fillRect(w - 4, 4, 2, h - 6);
+
+    // Text
+    ctx.fillStyle = p.text;
+    ctx.font = "16px 'Pixelify Sans', sans-serif";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = p.border;
+    ctx.fillText(text, (w / 2) + 2, (h / 2) + 2);
+    ctx.fillStyle = p.text;
+    ctx.fillText(text, w / 2, h / 2);
+
+    canvas.style.cursor = isDisabled ? 'not-allowed' : 'pointer';
+}
 
 export async function showStartPage() {
     let startPage = document.getElementById('start-page');
@@ -39,132 +79,116 @@ export async function showStartPage() {
 
     startPage = document.createElement('div');
     startPage.id = 'start-page';
-    startPage.style.display = 'flex'
-    startPage.style.flexDirection = 'column';
-    startPage.style.alignItems = 'center';
-    startPage.style.justifyContent = 'center';
-    startPage.style.position = 'fixed';
-    startPage.style.top = '0';
-    startPage.style.left = '0';
-    startPage.style.width = '100%';
-    startPage.style.height = '100%';
+    
+    Object.assign(startPage.style, {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100vw',
+        height: '100vh',
+        background: '#f5f5dc',
+        zIndex: '9999'
+    });
 
-    const startPageBgCanvas = document.createElement('canvas');
+    const bgCanvas = document.createElement('canvas');
+    bgCanvas.width = window.innerWidth;
+    bgCanvas.height = window.innerHeight;
+    Object.assign(bgCanvas.style, {
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        zIndex: '1'
+    });
 
-    const scale = 6;
-    const sourceW = 98;
-    const sourceH = 101;
+    const bgCtx = bgCanvas.getContext('2d');
+    bgCtx.fillStyle = 'rgba(139, 69, 19, 0.1)'; 
+    
+    const patternSize = 20;
+    for (let x = 0; x < bgCanvas.width; x += patternSize) {
+        for (let y = 0; y < bgCanvas.height; y += patternSize) {
+            if ((x + y) % (patternSize * 2) === 0) {
+                bgCtx.fillRect(x, y, patternSize, patternSize);
+            }
+        }
+    }
+
+    startPage.appendChild(bgCanvas);
+
+    const contentContainer = document.createElement('div');
+    Object.assign(contentContainer.style, {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '40px',
+        zIndex: '2',
+        position: 'relative'
+    });
+
+    const title = document.createElement('div');
+    title.textContent = 'COOKING SIM';
+    Object.assign(title.style, {
+        fontFamily: "'Pixelify Sans', sans-serif",
+        fontSize: '80px',
+        fontWeight: 'bold',
+        color: '#5D4037',
+        textShadow: '4px 4px 0px #8D6E63, 2px 2px 0px rgba(0,0,0,0.1)',
+        letterSpacing: '4px',
+        marginBottom: '20px'
+    });
+
+    const subtitle = document.createElement('div');
+    subtitle.textContent = '🍳 Master the Kitchen 🍔';
+    Object.assign(subtitle.style, {
+        fontFamily: "'Pixelify Sans', sans-serif",
+        fontSize: '24px',
+        color: '#795548',
+        textShadow: '1px 1px 0px rgba(255,255,255,0.5)',
+        marginBottom: '20px'
+    });
+
+    const buttonContainer = document.createElement('div');
+    Object.assign(buttonContainer.style, {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        alignItems: 'center'
+    });
 
     const dpr = window.devicePixelRatio || 1;
-    const logicalW = sourceW * scale;
-    const logicalH = sourceH * scale;
 
-    startPageBgCanvas.width = logicalW * dpr;
-    startPageBgCanvas.height = logicalH * dpr;
+    const startBtn = document.createElement('canvas');
+    startBtn.id = 'start-btn-canvas';
+    drawPixelButton(startBtn, 'START GAME', 'green', dpr, 1);
+    startBtn.onclick = () => handleStartGame();
 
-    startPageBgCanvas.style.width = `${logicalW}px`;
-    startPageBgCanvas.style.height = `${logicalH}px`;
+    const howToPlayBtn = document.createElement('canvas');
+    howToPlayBtn.id = 'howtoplay-btn-canvas';
+    drawPixelButton(howToPlayBtn, 'HOW TO PLAY', 'blue', dpr, 1);
+    howToPlayBtn.onclick = () => showHowToPlay();
 
-    const startPageBgctx = startPageBgCanvas.getContext('2d');
+    const settingsBtn = document.createElement('canvas');
+    settingsBtn.id = 'settings-btn-canvas';
+    drawPixelButton(settingsBtn, 'SETTINGS', 'orange', dpr, 1);
+    settingsBtn.onclick = () => showSettingsPage('start');
 
-    startPageBgctx.scale(dpr, dpr);
+    buttonContainer.appendChild(startBtn);
+    buttonContainer.appendChild(howToPlayBtn);
+    buttonContainer.appendChild(settingsBtn);
 
-    startPageBgctx.imageSmoothingEnabled = false;
-    startPageBgctx.mozImageSmoothingEnabled = false;
-    startPageBgctx.webkitImageSmoothingEnabled = false;
+    contentContainer.appendChild(title);
+    contentContainer.appendChild(subtitle);
+    contentContainer.appendChild(buttonContainer);
 
-    const sBtnW = 42;
-    const sBtnH = 15;
-    const btnX = (sourceW / 2) - (sBtnW / 2);
-    const btnY = (sourceH / 2) - (sBtnH / 2);
-
-    const draw = () => {
-        startPageBgctx.clearRect(0, 0, logicalW, logicalH);
-
-        startPageBgctx.save();
-        startPageBgctx.scale(scale, scale);
-
-        startPageBgctx.drawImage(
-            inventorySprite,
-            7, 0, sourceW, sourceH,
-            0, 0, sourceW, sourceH
-        );
-
-        startPageBgctx.drawImage(
-            buttonsSprite,
-            147, 113, sBtnW, sBtnH,
-            btnX, btnY, sBtnW, sBtnH
-        );
-
-        startPageBgctx.drawImage(
-            buttonsSprite,
-            147, 113, sBtnW, sBtnH,
-            btnX, btnY + 20, sBtnW, sBtnH
-        )
-
-        startPageBgctx.restore();
-
-        startPageBgctx.fillStyle = "black";
-
-        let textX = (btnX + (sBtnW / 2)) * scale;
-        let textY = (btnY + (sBtnH / 2) + 0.5) * scale;
-
-        startPageBgctx.font = `bold ${6 * scale}px 'Pixelify Sans', sans-serif`;
-        startPageBgctx.textAlign = "center";
-        startPageBgctx.textBaseline = "middle";
-
-        startPageBgctx.fillText("Start", textX, textY);
-
-        textY = (btnY + 20 + (sBtnH / 2) + 0.5) * scale;
-
-        startPageBgctx.font = `bold ${6 * scale}px 'Pixelify Sans', sans-serif`;
-        startPageBgctx.textAlign = "center";
-        startPageBgctx.textBaseline = "middle";
-
-        startPageBgctx.fillText("Settings", textX, textY);
-
-    };
-
-    startPageBgCanvas.addEventListener('click', (event) => {
-        const rect = startPageBgCanvas.getBoundingClientRect();
-
-        const mouseX = (event.clientX - rect.left) / scale;
-        const mouseY = (event.clientY - rect.top) / scale;
-
-        if (mouseX >= btnX && mouseX <= btnX + sBtnW &&
-            mouseY >= btnY && mouseY <= btnY + sBtnH) {
-            handleStartGame();
-        }
-        if (mouseX >= btnX && mouseX <= btnX + sBtnW &&
-            mouseY >= btnY + 20 && mouseY <= btnY + sBtnH + 20) {
-                showSettingsPage('start')
-        }
-    });
-
-    startPageBgCanvas.addEventListener('mousemove', (event) => {
-        const rect = startPageBgCanvas.getBoundingClientRect();
-
-        const mouseX = (event.clientX - rect.left) / scale;
-        const mouseY = (event.clientY - rect.top) / scale;
-
-        const onStartBtn = mouseX >= btnX && mouseX <= btnX + sBtnW &&
-            mouseY >= btnY && mouseY <= btnY + sBtnH;
-
-        const onSettingsBtn = mouseX >= btnX && mouseX <= btnX + sBtnW &&
-            mouseY >= btnY + 20 && mouseY <= btnY + 20 + sBtnH;
-
-        if (onStartBtn || onSettingsBtn) {
-            startPageBgCanvas.style.cursor = 'pointer';
-        } else {
-            startPageBgCanvas.style.cursor = 'default';
-        }
-    });
+    startPage.appendChild(contentContainer);
 
     await document.fonts.ready;
-    await imagesLoaded();
-    draw();
-
-    startPage.appendChild(startPageBgCanvas);
+    
     document.getElementById('game-container').appendChild(startPage);
 
     hidePauseMenu();

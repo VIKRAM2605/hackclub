@@ -68,6 +68,33 @@ export let player = {
     reduceSoupCookTime: 1,
 };
 
+export function resetPlayer() {
+    player.x = 64;
+    player.y = 100;
+    player.width = 20;
+    player.height = 38;
+    player.spriteName = 'player';
+    player.speed = 0.09;
+    player.slipTimer = 0;
+    player.slipDuration = 500;
+    player.direction = 'right';
+    player.isMoving = false;
+    player.isSlipping = false;
+    player.frameIndex = 0;
+    player.frameCounter = 0;
+    player.frameTimer = 0;
+    player.frameInterval = 100;
+    player.animationSpeed = 18;
+    player.collisionWidth = 12;
+    player.collisionHeight = 16;
+    player.collisionOffsetY = 8;
+    player.reduceKillerChance = 1;
+    player.increaseCoinDropTime = 1;
+    player.reducePattyCookTime = 1;
+    player.reduceHotDogCookTime = 1;
+    player.reduceSoupCookTime = 1;
+}
+
 const keys = {
     up: false,
     down: false,

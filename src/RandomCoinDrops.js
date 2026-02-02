@@ -1,4 +1,4 @@
-let activeCoins = []
+export let activeCoins = []
 
 const coinSpriteSheet = new Image();
 coinSpriteSheet.src = 'assets/coin1-Photoroom.png';

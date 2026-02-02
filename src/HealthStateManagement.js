@@ -2,13 +2,13 @@ import { baseW } from "./CharacterMovement.js";
 import { gameRunning } from "./GameMechanics.js";
 import { showRetryPage } from "./RetryPage.js";
 
+const canvas = document.getElementById('canvas1');
+const ctx = canvas.getContext('2d');
+
 export const health = [1, 1];
 
 const fullHeartSpriteSheet = new Image();
 fullHeartSpriteSheet.src = 'assets/hearttype1.png'
-
-const canvas = document.getElementById('canvas1');
-const ctx = canvas.getContext('2d');
 
 const heartSprite = {
     fullHeart: { x: 11, y: 14, w: 45, h: 45 },
@@ -44,7 +44,6 @@ export function showHealth() {
         }
     }
 };
-
 export function deductHealth() {
     if (!health) return;
 
@@ -74,4 +73,9 @@ export function isDead() {
     if (!health) return;
 
     return health.every(h => h === 0);
+}
+
+export function resetHealth(){
+    health[0] = 1;
+    health[1] = 1;
 }

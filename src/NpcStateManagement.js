@@ -1,10 +1,10 @@
-import { cookedFoodCount, drawSpriteOnModal } from "./StateManagement.js";
-import { deductHealth, showHealth } from "./HealthStateManagement.js";
 import { getPlayerCollisionBox } from "./CharacterMovement.js";
 import { killerNpcDialogs, normalNpcDialogs } from "./NpcDialogs.js";
 import { gameRunning } from "./GameMechanics.js";
 import { addBalance } from "./Wallet.js";
-
+import { cookedFoodCount } from "./TotalCookedFoods.js";
+import { deductHealth } from "./HealthStateManagement.js";
+import { sprites, spriteSheet } from "./SceneCreation.js";
 
 let spawnDelayTime = 20000;
 let minSpawnDelay = 2000;
@@ -25,11 +25,8 @@ export const leavingNpcs = [];
 export const npcQueuePosition = [180, 210, 240];
 export let queuePointer = 0;
 
-const spriteSheet = new Image();
-spriteSheet.src = 'assets/01-generic.png';
-
-const bgSpriteSheet = new Image();
-bgSpriteSheet.src = 'assets/shopplaceholder-Photoroom.png';
+const spriteSheet_npc = new Image();
+spriteSheet_npc.src = 'assets/01-generic.png';
 
 const closeSprite = new Image();
 closeSprite.src = 'assets/Main_tiles.png';
@@ -132,8 +129,6 @@ const npcSprites = {
 
 const thinkBubble = { x: 84, y: 250, w: 393, h: 165 };
 
-const animationSpeed = 40;
-
 const orderWeights = {
     'cookedPatty': 0.5,
     'cookedHotDog': 0.3,
@@ -142,6 +137,39 @@ const orderWeights = {
 const food_price = {
     'cookedPatty': 20,
     'cookedHotDog': 30,
+}
+
+const imagesLoaded = () => {
+    return new Promise((resolve) => {
+        let loadedCount = 0;
+        const totalImages = 3;
+        const onload = () => {
+            loadedCount++;
+            if (loadedCount === totalImages) resolve();
+        };
+
+        if (spriteSheet_npc.complete) loadedCount++; else spriteSheet_npc.onload = onload;
+        if (closeSprite.complete) loadedCount++; else closeSprite.onload = onload;
+        if (cloud.complete) loadedCount++; else cloud.onload = onload;
+
+        if (loadedCount === totalImages) resolve();
+    });
+};
+
+export function resetNpcState() {
+    spawnDelayTime = 20000;
+    minSpawnDelay = 2000;
+    lastSpawnTime = 0;
+    nextSpawnDelay = 4000 + Math.random() * spawnDelayTime;
+    patience = 25;
+    minPatience = 10;
+    npcsServedCount = 0;
+    killerChance = 0.15;
+
+    npcQueue.length = 0;
+    leavingNpcs.length = 0;
+
+    queuePointer = 0;
 }
 
 const totalWeight = Object.values(orderWeights).reduce((sum, w) => sum + w, 0);
@@ -234,12 +262,10 @@ export function updateNpcQueue(deltaTime) {
         const targetX = 325 - (2 * 50);
         const targetY = npcQueuePosition[i];
 
-        //stop close to the target
         if (Math.abs(npcQueue[i].positionX - targetX) < 5) {
             npcQueue[i].positionX = targetX;
             npcQueue[i].status = "ordering";
         } else {
-            //move to the target place
             npcQueue[i].positionX += 40 * (deltaTime / 1000);
         }
         if (i === 0 && Math.abs(npcQueue[0].positionX - targetX) < 5) {
@@ -250,7 +276,7 @@ export function updateNpcQueue(deltaTime) {
             }
             if (npcQueue[0].patience < 0) {
                 console.log(`${npcQueue[0].order} left angry!`);
-                const modal = document.getElementById('main-modal');
+                const modal = document.getElementById('npc-modal-overlay');
                 if (modal) {
                     modal.remove()
                 }
@@ -294,11 +320,13 @@ export function decreaseSpawnDelayTime() {
         spawnDelayTime -= 100;
     }
 };
+
 export function decreasePatienceTime() {
     if (patience > minPatience) {
         patience -= 0.5;
     }
 }
+
 function processOrderPayment(order) {
     let totalEarnings = 0;
 
@@ -340,7 +368,7 @@ export function updateAnimation(customer, deltaTime) {
 export function animateNpc(ctx, frame, x, y, targetW, targetH) {
     if (!frame) return;
     ctx.drawImage(
-        spriteSheet,
+        spriteSheet_npc,
         frame.x, frame.y, frame.w, frame.h,
         x, y, targetW, targetH
     );
@@ -424,8 +452,6 @@ export function drawQueue(ctx, deltaTime = 0) {
     }
 }
 
-
-
 export function isFirstNpcIntaractable(x, y, maxDistance = 60) {
     if (!npcQueue[0]) return false;
     if (npcQueue[0].status !== "ordering") return false;
@@ -447,7 +473,6 @@ export function isFirstNpcIntaractable(x, y, maxDistance = 60) {
     const dy = playerCenterY - npcCenterY;
     return (dx * dx + dy * dy) <= (maxDistance * maxDistance);
 }
-
 
 function drawPixelButton(canvas, text, theme, dpr, scale, isDisabled = false) {
     if (!canvas) return;
@@ -512,96 +537,122 @@ function drawPixelButton(canvas, text, theme, dpr, scale, isDisabled = false) {
     canvas.style.cursor = isDisabled ? 'not-allowed' : 'pointer';
 }
 
+export async function openNpcModal() {
+    if (!npcQueue[0] || npcQueue[0].status !== "ordering") return;
 
-export function openNpcModal(template) {
-    if (!template || !npcQueue[0] || npcQueue[0].status !== "ordering") return;
+    await imagesLoaded();
 
-    let modal = document.getElementById('main-modal');
+    let modal = document.getElementById('npc-modal-overlay');
     if (modal) return;
 
-    modal = document.createElement('div');
-    modal.id = "main-modal";
-    modal.innerHTML = template;
-    document.getElementById('game-container').appendChild(modal);
+    const overlay = document.createElement('div');
+    overlay.id = 'npc-modal-overlay';
+    Object.assign(overlay.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        zIndex: '1000',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backdropFilter: 'blur(2px)'
+    });
 
-    const dpr = window.devicePixelRatio || 1;
+    const modal_box = document.createElement('div');
+    Object.assign(modal_box.style, {
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: '40px 30px',
+        backgroundColor: '#eec39a',
+        borderRadius: '12px',
+        border: '4px solid #5D4037',
+        boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+        minWidth: '450px',
+        maxWidth: '500px'
+    });
 
-    const bgCanavsW = 127;
-    const bgCanavsH = 69;
-    const pixelScale = 4;
-    const scale = 4;
+    const title = document.createElement('div');
+    title.textContent = 'Customer Order';
+    Object.assign(title.style, {
+        fontFamily: "'Pixelify Sans', sans-serif",
+        fontSize: '32px',
+        fontWeight: 'bold',
+        color: '#5D4037',
+        marginBottom: '20px',
+        textShadow: '2px 2px 0px rgba(0,0,0,0.1)'
+    });
+    modal_box.appendChild(title);
 
-    const canvas = document.getElementById('npc-bg-canvas');
-    const bgLogicalW = bgCanavsW * scale;
-    const bgLogicalH = bgCanavsH * scale;
+    const npcSection = document.createElement('div');
+    Object.assign(npcSection.style, {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '15px',
+        marginBottom: '20px',
+        width: '100%'
+    });
 
-    canvas.width = bgLogicalW * dpr;
-    canvas.height = bgLogicalH * dpr;
-    canvas.style.width = `${bgLogicalW}px`;
-    canvas.style.height = `${bgLogicalH}px`;
+    const npcCanvas = document.createElement('canvas');
+    const npcSize = 100;
+    npcCanvas.width = npcSize;
+    npcCanvas.height = npcSize;
+    npcCanvas.style.width = `${npcSize}px`;
+    npcCanvas.style.height = `${npcSize}px`;
+    Object.assign(npcCanvas.style, {
+        border: '3px solid #5D4037',
+        borderRadius: '8px',
+        backgroundColor: '#d4a574'
+    });
+    drawNPCSpriteOnModal(npcQueue[0].skin, npcCanvas);
+    npcSection.appendChild(npcCanvas);
 
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
-    ctx.scale(dpr * scale, dpr * scale);
+    const dialog = document.createElement('div');
+    dialog.textContent = npcQueue[0].dialog;
+    Object.assign(dialog.style, {
+        fontFamily: "'Pixelify Sans', sans-serif",
+        fontSize: '16px',
+        color: '#5D4037',
+        textAlign: 'center',
+        fontStyle: 'italic',
+        padding: '10px 20px',
+        backgroundColor: '#d4a574',
+        borderRadius: '8px',
+        border: '2px solid #5D4037',
+        maxWidth: '80%'
+    });
+    npcSection.appendChild(dialog);
 
-    const w = bgLogicalW / pixelScale;
-    const h = bgLogicalH / pixelScale;
+    modal_box.appendChild(npcSection);
 
-    // Draw Background
-    ctx.fillStyle = '#eec39a';
-    ctx.fillRect(2, 2, w - 4, h - 4);
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = '#2d1e15';
-    ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
-    ctx.strokeStyle = '#8b5e3c';
-    ctx.strokeRect(1.5, 1.5, w - 3, h - 3);
-    ctx.fillStyle = '#c69c6d';
-    ctx.fillRect(1, 1, w - 2, 1);
-    ctx.fillRect(1, 1, 1, h - 2);
-    ctx.fillStyle = '#5d4037';
-    ctx.fillRect(1, h - 2, w - 2, 1);
-    ctx.fillRect(w - 2, 1, 1, h - 2);
-    ctx.fillStyle = '#3e2723';
-    ctx.fillRect(2, 2, 1, 1);
-    ctx.fillRect(w - 3, 2, 1, 1);
-    ctx.fillRect(2, h - 3, 1, 1);
-    ctx.fillRect(w - 3, h - 3, 1, 1);
+    const orderLabel = document.createElement('div');
+    orderLabel.textContent = 'Order:';
+    Object.assign(orderLabel.style, {
+        fontFamily: "'Pixelify Sans', sans-serif",
+        fontSize: '20px',
+        fontWeight: 'bold',
+        color: '#5D4037',
+        marginBottom: '10px',
+        alignSelf: 'flex-start'
+    });
+    modal_box.appendChild(orderLabel);
 
-    const closeCanvas = document.getElementById('close-modal-canvas');
-    const closeW = 9;
-    const closeH = 9;
-    const closeLogicalW = closeW * scale;
-    const closeLogicalH = closeH * scale;
-
-    closeCanvas.width = closeLogicalW * dpr;
-    closeCanvas.height = closeLogicalH * dpr;
-    closeCanvas.style.width = `${closeLogicalW}px`;
-    closeCanvas.style.height = `${closeLogicalH}px`;
-
-    const closectx = closeCanvas.getContext('2d');
-    closectx.imageSmoothingEnabled = false;
-    closectx.scale(dpr * scale, dpr * scale);
-
-    closectx.drawImage(
-        closeSprite,
-        356, 291, closeW, closeH,
-        0, 0, closeW, closeH
-    );
-
-    const npcSpriteCanva = document.getElementById('npc-sprite');
-    const ctxNpcSprite = npcSpriteCanva.getContext('2d');
-
-    drawNPCSpriteOnModal(npcQueue[0].skin, npcSpriteCanva, ctxNpcSprite, dpr);
+    const foodListContainer = document.createElement('div');
+    Object.assign(foodListContainer.style, {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        width: '100%',
+        marginBottom: '20px'
+    });
 
     const currentOrder = npcQueue[0].order;
-    const foodListContainer = document.getElementById('npc-foods');
-    const npcDialog = document.getElementById('npc-dialog');
-    const serveBtnCanvas = document.getElementById('serve-btn-canvas');
-    const unServeBtnCanvas = document.getElementById('refuse-btn-canvas');
-
     let canAffordAll = true;
-    foodListContainer.innerHTML = '';
-    npcDialog.innerText = npcQueue[0].dialog;
 
     currentOrder.forEach(item => {
         const requiredAmount = item.quantity;
@@ -611,80 +662,92 @@ export function openNpcModal(template) {
         if (!hasEnough) canAffordAll = false;
 
         const row = document.createElement('div');
-        row.style.display = "flex";
-        row.style.alignItems = "center";
-        row.style.padding = "6px";
-        row.style.borderRadius = "6px";
-        row.style.flex = "0 0 auto";
+        Object.assign(row.style, {
+            display: 'flex',
+            alignItems: 'center',
+            padding: '10px',
+            borderRadius: '8px',
+            backgroundColor: '#d4a574',
+            border: '2px solid #5D4037'
+        });
 
         const foodCanvas = document.createElement('canvas');
-
-        const foodLogicalSize = 64;
-
-        foodCanvas.style.width = `${foodLogicalSize}px`;
-        foodCanvas.style.height = `${foodLogicalSize}px`;
-        foodCanvas.style.marginRight = "10px";
-
-        foodCanvas.width = foodLogicalSize * dpr;
-        foodCanvas.height = foodLogicalSize * dpr;
-
-        const foodctx = foodCanvas.getContext('2d');
-        foodctx.imageSmoothingEnabled = false;
-
-        foodctx.scale(dpr, dpr);
-
-        drawSpriteOnModal(item.food, foodCanvas, foodctx, foodLogicalSize, foodLogicalSize, "npc");
+        const foodSize = 64;
+        foodCanvas.width = foodSize;
+        foodCanvas.height = foodSize;
+        foodCanvas.style.width = `${foodSize}px`;
+        foodCanvas.style.height = `${foodSize}px`;
+        foodCanvas.style.marginRight = '15px';
+        
+        const foodCtx = foodCanvas.getContext('2d');
+        foodCtx.imageSmoothingEnabled = false;
+        
+        const sprite = sprites[item.food];
+        if (sprite) {
+            const scale = 2.5;
+            const spriteW = sprite.w * scale;
+            const spriteH = sprite.h * scale;
+            
+            foodCtx.drawImage(
+                spriteSheet,
+                sprite.x, sprite.y, sprite.w, sprite.h,
+                (foodSize - spriteW) / 2, (foodSize - spriteH) / 2,
+                spriteW, spriteH
+            );
+        }
+        
+        row.appendChild(foodCanvas);
 
         const infoText = document.createElement('div');
-        infoText.style.display = "flex";
-        infoText.style.flexDirection = "column";
+        Object.assign(infoText.style, {
+            display: 'flex',
+            flexDirection: 'column',
+            flex: '1'
+        });
 
         const qtyText = document.createElement('span');
-        qtyText.style.fontWeight = "bold";
-        qtyText.style.fontSize = "16px";
-        qtyText.style.fontFamily = "'Pixelify Sans', sans-serif";
-        qtyText.style.color = "#3e2723";
-
-        qtyText.style.color = "#3e2723";
-        qtyText.innerText = `x ${requiredAmount}`;
+        qtyText.textContent = `x ${requiredAmount}`;
+        Object.assign(qtyText.style, {
+            fontWeight: 'bold',
+            fontSize: '18px',
+            fontFamily: "'Pixelify Sans', sans-serif",
+            color: '#3e2723'
+        });
 
         const stockText = document.createElement('span');
-        stockText.style.fontSize = "10px";
-        stockText.style.marginTop = "2px";
-        stockText.style.fontFamily = "'Pixelify Sans', sans-serif";
-        stockText.style.color = hasEnough ? "#2e7d32" : "#d32f2f";
-        stockText.innerText = hasEnough
-            ? `Have: ${playerHas}`
-            : `Need: ${playerHas}/${requiredAmount}`;
+        stockText.textContent = hasEnough ? `Have: ${playerHas}` : `Need: ${playerHas}/${requiredAmount}`;
+        Object.assign(stockText.style, {
+            fontSize: '14px',
+            marginTop: '4px',
+            fontFamily: "'Pixelify Sans', sans-serif",
+            color: hasEnough ? '#2e7d32' : '#d32f2f'
+        });
 
         infoText.appendChild(qtyText);
         infoText.appendChild(stockText);
-
-        row.appendChild(foodCanvas);
         row.appendChild(infoText);
+
         foodListContainer.appendChild(row);
     });
 
+    modal_box.appendChild(foodListContainer);
+
+    const btnContainer = document.createElement('div');
+    Object.assign(btnContainer.style, {
+        display: 'flex',
+        gap: '20px',
+        marginTop: '10px'
+    });
+
+    const dpr = window.devicePixelRatio || 1;
+
+    const serveBtn = document.createElement('canvas');
     const serveText = canAffordAll ? "SERVE" : "NOT ENOUGH";
-    drawPixelButton(
-        serveBtnCanvas,
-        serveText,
-        'green',
-        dpr,
-        1,
-        !canAffordAll
-    );
+    drawPixelButton(serveBtn, serveText, 'green', dpr, 1, !canAffordAll);
 
-    drawPixelButton(
-        unServeBtnCanvas,
-        "REJECT",
-        'red',
-        dpr,
-        1
-    );
-
-    serveBtnCanvas.onclick = () => {
+    serveBtn.onclick = () => {
         if (!canAffordAll) return;
+        
         currentOrder.forEach(item => {
             cookedFoodCount[item.food] -= item.quantity;
         });
@@ -694,58 +757,101 @@ export function openNpcModal(template) {
         npcQueue[0].dialog = getNpcDialog(npcQueue[0].isKiller, "served");
         npcQueue[0].status = "served";
         leavingNpcs.push(npcQueue[0]);
+        
         if (npcQueue[0].isKiller) {
             deductHealth();
         }
+        
         npcQueue.shift();
         decreasePatienceTime();
         decreaseSpawnDelayTime();
         npcsServedCount++;
-        modal.remove();
+        overlay.remove();
     };
 
-    unServeBtnCanvas.onclick = () => {
+    const refuseBtn = document.createElement('canvas');
+    drawPixelButton(refuseBtn, "REJECT", 'red', dpr, 1);
+
+    refuseBtn.onclick = () => {
         npcQueue[0].dialog = getNpcDialog(npcQueue[0].isKiller, "angry");
         npcQueue[0].status = "unserved";
         leavingNpcs.push(npcQueue[0]);
+        
         if (!npcQueue[0].isKiller) {
             deductHealth();
         }
+        
         npcQueue.shift();
         decreasePatienceTime();
         decreaseSpawnDelayTime();
         npcsServedCount++;
-        modal.remove();
+        overlay.remove();
     };
 
-    closeCanvas.addEventListener('click', () => modal.remove());
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') modal.remove();
+    btnContainer.appendChild(serveBtn);
+    btnContainer.appendChild(refuseBtn);
+    modal_box.appendChild(btnContainer);
+
+    const closeCanvas = document.createElement('canvas');
+    const closeW = 9;
+    const closeH = 9;
+    const closeScale = 4;
+    const closeLogicalW = closeW * closeScale;
+    const closeLogicalH = closeH * closeScale;
+
+    closeCanvas.width = closeLogicalW * dpr;
+    closeCanvas.height = closeLogicalH * dpr;
+    Object.assign(closeCanvas.style, {
+        width: `${closeLogicalW}px`,
+        height: `${closeLogicalH}px`,
+        position: 'absolute',
+        top: '15px',
+        right: '15px',
+        cursor: 'pointer'
     });
+
+    const closectx = closeCanvas.getContext('2d');
+    closectx.imageSmoothingEnabled = false;
+    closectx.scale(dpr * closeScale, dpr * closeScale);
+
+    closectx.drawImage(
+        closeSprite,
+        356, 291, closeW, closeH,
+        0, 0, closeW, closeH
+    );
+
+    closeCanvas.onclick = () => overlay.remove();
+    modal_box.appendChild(closeCanvas);
+
+    const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+            overlay.remove();
+            document.removeEventListener('keydown', handleEscape);
+        }
+    };
+    document.addEventListener('keydown', handleEscape);
+
+    overlay.appendChild(modal_box);
+    document.getElementById('game-container').appendChild(overlay);
 }
 
-
-export function drawNPCSpriteOnModal(skinName, canvas, ctx, dpr = 1) {
+function drawNPCSpriteOnModal(skinName, canvas) {
     if (!npcSprites[skinName]) return;
 
     const sprite = npcSprites[skinName].canvas;
-
-    const rect = canvas.getBoundingClientRect();
-    if (canvas.width !== rect.width * dpr) {
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-    }
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const ctx = canvas.getContext('2d');
+    
     ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-
-    const cropHeight = Math.floor(sprite.h * 0.65);
+    const scale = 4;
+    const spriteW = sprite.w * scale;
+    const spriteH = sprite.h * scale;
 
     ctx.drawImage(
-        spriteSheet,
-        sprite.x, sprite.y,
-        sprite.w, sprite.h,
-        0, 0, canvas.width, canvas.height
+        spriteSheet_npc,
+        sprite.x, sprite.y, sprite.w, sprite.h,
+        (canvas.width - spriteW) / 2, (canvas.height - spriteH) / 2,
+        spriteW, spriteH
     );
 }

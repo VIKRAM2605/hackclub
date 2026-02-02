@@ -5,15 +5,14 @@ import { showHealth } from "./HealthStateManagement.js";
 import { hideRetryPage } from "./RetryPage.js";
 import { hideShopBtn, showShopBtn } from "./ShopPage.js";
 
-let spawnInterval = null;
-export let UpperBoundForCoin = 120000
-export let gameRunning = false;
+var spawnInterval = null;
+export var UpperBoundForCoin = 120000
+export var gameRunning = false;
 export function startGame() {
     if (gameRunning) return;
     gameRunning = true;
     document.getElementById('canvas1').style.display = 'block';
     currentBalance(0);
-    showHealth();
     document.body.addEventListener('click', coinClickHandler);
     showShopBtn();
 

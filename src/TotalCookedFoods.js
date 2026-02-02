@@ -1,4 +1,4 @@
-export const cookedFoodCount = {
+export let cookedFoodCount = {
     cookedPatty: 0,
     cookedHotDog: 0,
     cookedSoup: 0
@@ -12,3 +12,8 @@ export function updateCookedFoodCount(foodName) {
     return cookedFoodCount[food];
 };
 
+export function resetCookedFoodCount() {
+    cookedFoodCount.cookedPatty = 0;
+    cookedFoodCount.cookedHotDog = 0;
+    cookedFoodCount.cookedSoup = 0;
+}

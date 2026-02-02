@@ -2,7 +2,7 @@ import { baseH, baseW } from "./CharacterMovement.js";
 import { gameRunning } from "./GameMechanics.js";
 import { npcsServedCount } from "./NpcStateManagement.js";
 import { randomInt } from "./RandomCoinDrops.js";
-import { cookedFoodCount } from "./StateManagement.js";
+import { cookedFoodCount } from "./TotalCookedFoods.js";
 
 const spillageSprite = new Image();
 spillageSprite.src = 'assets/oilspill.png';

@@ -1,7 +1,7 @@
 import { baseW } from "./CharacterMovement.js";
 import { gameRunning } from "./GameMechanics.js";
 import { sprites, spriteSheet } from "./SceneCreation.js";
-import { cookedFoodCount } from "./StateManagement.js";
+import { cookedFoodCount } from "./TotalCookedFoods.js";
 
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');

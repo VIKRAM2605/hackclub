@@ -1,224 +1,308 @@
-import { quitGame, resumeGame } from "./GameMechanics.js";
+import { pauseGame, quitGame, resumeGame } from "./GameMechanics.js";
 import { removeAllCoins } from "./RandomCoinDrops.js";
 import { hideRetryPage } from "./RetryPage.js";
 import { showSettingsPage } from "./Settings.js";
 import { showStartPage } from "./StartPage.js";
 import { playTimeTillNow } from "./TimeCalculation.js";
 
-const settingsSprite = new Image();
-settingsSprite.src = 'assets/Settings.png';
-
-const inventorySprite = new Image();
-inventorySprite.src = 'assets/Inventory.png';
-
-const buttonsSprite = new Image();
-buttonsSprite.src = 'assets/Buttons.png';
-
-const sliderSprite = new Image();
-sliderSprite.src = 'assets/slider-Photoroom.png';
+const closeSprite = new Image();
+closeSprite.src = 'assets/Main_tiles.png';
 
 const imagesLoaded = () => {
     return new Promise((resolve) => {
         let loadedCount = 0;
-        const totalImages = 4;
+        const totalImages = 1;
         const onload = () => {
             loadedCount++;
             if (loadedCount === totalImages) resolve();
         };
 
-        if (inventorySprite.complete) loadedCount++;
-        else inventorySprite.onload = onload;
-
-        if (buttonsSprite.complete) loadedCount++;
-        else buttonsSprite.onload = onload;
-
-        if (settingsSprite.complete) loadedCount++;
-        else settingsSprite.onload = onload;
-
-        if (sliderSprite.complete) loadedCount++;
-        else sliderSprite.onload = onload;
-
+        if (closeSprite.complete) loadedCount++;
+        else closeSprite.onload = onload;
 
         if (loadedCount === totalImages) resolve();
     });
 };
 
+function drawPixelButton(canvas, text, theme, dpr, scale, isDisabled = false) {
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const logicalW = 130;
+    const logicalH = 40;
+
+    canvas.width = logicalW * dpr * scale;
+    canvas.height = logicalH * dpr * scale;
+    canvas.style.width = `${logicalW}px`;
+    canvas.style.height = `${logicalH}px`;
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr * scale, dpr * scale);
+    ctx.imageSmoothingEnabled = false;
+
+    const colors = {
+        green: { main: '#4caf50', light: '#80e27e', dark: '#087f23', border: '#1b5e20', text: '#fff' },
+        red: { main: '#d32f2f', light: '#ff6659', dark: '#9a0007', border: '#5d1010', text: '#fff' },
+        gray: { main: '#555555', light: '#777777', dark: '#333333', border: '#222222', text: '#aaaaaa' },
+        blue: { main: '#2196f3', light: '#64b5f6', dark: '#0d47a1', border: '#1565c0', text: '#fff' },
+        orange: { main: '#ff9800', light: '#ffb74d', dark: '#e65100', border: '#bf360c', text: '#fff' }
+    };
+
+    let p = isDisabled ? colors.gray : colors[theme];
+    if (!p) p = colors.gray;
+
+    const w = logicalW;
+    const h = logicalH;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Border
+    ctx.fillStyle = p.border;
+    ctx.fillRect(2, 0, w - 4, h);
+    ctx.fillRect(0, 2, w, h - 4);
+    ctx.fillRect(1, 1, w - 2, h - 2);
+    // Main Body
+    ctx.fillStyle = p.main;
+    ctx.fillRect(2, 2, w - 4, h - 4);
+    // Highlights
+    ctx.fillStyle = p.light;
+    ctx.fillRect(2, 2, w - 6, 2);
+    ctx.fillRect(2, 2, 2, h - 6);
+    // Shadows
+    ctx.fillStyle = p.dark;
+    ctx.fillRect(4, h - 4, w - 6, 2);
+    ctx.fillRect(w - 4, 4, 2, h - 6);
+
+    ctx.fillStyle = p.text;
+    ctx.font = "16px 'Pixelify Sans', sans-serif";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = p.border;
+    ctx.fillText(text, (w / 2) + 2, (h / 2) + 2);
+    ctx.fillStyle = p.text;
+    ctx.fillText(text, w / 2, h / 2);
+
+    canvas.style.cursor = isDisabled ? 'not-allowed' : 'pointer';
+}
+
+export function pauseButton() {
+    let pauseBtn = document.getElementById('pause-btn-main');
+    if (pauseBtn) return;
+    pauseBtn = document.createElement('div');
+    pauseBtn.id = 'pause-btn-main';
+    pauseBtn.style.position = 'absolute';
+    pauseBtn.style.cursor = 'pointer';
+
+    document.getElementById('game-container').appendChild(pauseBtn);
+
+    const updatePosition = () => {
+        const rect = document.getElementById('canvas1').getBoundingClientRect();
+
+        const gameX = 10;
+        const gameY = 10;
+
+        const scale = 2.3;
+
+        const finalLeft = rect.left + (gameX * scale);
+        const finalTop = rect.top + (gameY * scale);
+
+        pauseBtn.style.left = `${finalLeft}px`;
+        pauseBtn.style.top = `${finalTop}px`;
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+
+    const pauseBtnSprite = new Image();
+    pauseBtnSprite.src = 'assets/pause-Photoroom.png';
+
+    const pauseCanvas = document.createElement('canvas');
+    const pausectx = pauseCanvas.getContext('2d');
+
+    pauseCanvas.width = 40;
+    pauseCanvas.height = 40;
+
+    const drawButton = () => {
+        pausectx.drawImage(
+            pauseBtnSprite,
+            80, 80, 65, 64,
+            0, 0, 40, 40
+        );
+    };
+
+    if (pauseBtnSprite.complete) {
+        drawButton();
+    } else {
+        pauseBtnSprite.onload = drawButton;
+    }
+
+    pauseBtn.appendChild(pauseCanvas);
+
+    pauseCanvas.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hidePauseBtn();
+        pauseGame();
+        showPauseMenu();
+    })
+}
+
+export function hidePauseBtn() {
+    let pauseBtn = document.getElementById('pause-btn-main');
+    if (pauseBtn) {
+        pauseBtn.style.display = 'none';
+    }
+}
+
+export function showPauseBtn() {
+    let pauseBtn = document.getElementById('pause-btn-main');
+    if (pauseBtn) {
+        pauseBtn.style.display = 'block';
+    }
+}
+
 export async function showPauseMenu() {
+    await imagesLoaded();
 
-    let pauseMenu = document.createElement('div');
-    pauseMenu.id = 'pause-menu';
-
-    Object.assign(pauseMenu.style, {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
+    let pauseOverlay = document.createElement('div');
+    pauseOverlay.id = 'pause-menu';
+    Object.assign(pauseOverlay.style, {
         position: 'fixed',
         top: '0',
         left: '0',
         width: '100%',
         height: '100%',
         zIndex: '1000',
-        cursor: 'default'
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backdropFilter: 'blur(2px)'
     });
 
-    const pauseSpriteLocation = {
-        btn: { x: 196, y: 162, w: 39, h: 13 },
-        closeBtn: { x: 144, y: 112, w: 25, h: 16 }
-    }
+    let pauseModal = document.createElement('div');
+    Object.assign(pauseModal.style, {
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '400px',
+        padding: '40px 20px',
+        backgroundColor: '#eec39a',
+        borderRadius: '12px',
+        border: '4px solid #5D4037',
+        boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
+    });
 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const title = document.createElement('div');
+    title.textContent = 'PAUSED';
+    Object.assign(title.style, {
+        fontFamily: "'Pixelify Sans', sans-serif",
+        fontSize: '48px',
+        fontWeight: 'bold',
+        color: '#5D4037',
+        marginBottom: '10px',
+        textShadow: '3px 3px 0px rgba(0,0,0,0.1)'
+    });
+    pauseModal.appendChild(title);
 
-    const scale = 4;
-    const sourceW = 98;
-    const sourceH = 149;
+    const timeText = document.createElement('div');
+    timeText.textContent = 'Time Played';
+    Object.assign(timeText.style, {
+        fontFamily: "'Pixelify Sans', sans-serif",
+        fontSize: '16px',
+        color: '#5D4037',
+        marginBottom: '5px'
+    });
+    pauseModal.appendChild(timeText);
+
+    const timeValue = document.createElement('div');
+    timeValue.textContent = playTimeTillNow();
+    Object.assign(timeValue.style, {
+        fontFamily: "'Pixelify Sans', sans-serif",
+        fontSize: '20px',
+        fontWeight: 'bold',
+        color: '#5D4037',
+        marginBottom: '30px'
+    });
+    pauseModal.appendChild(timeValue);
 
     const dpr = window.devicePixelRatio || 1;
-    const logicalW = sourceW * scale;
-    const logicalH = sourceH * scale;
 
-    canvas.width = logicalW * dpr;
-    canvas.height = logicalH * dpr;
+    const btnContainer = document.createElement('div');
+    Object.assign(btnContainer.style, {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '15px',
+        alignItems: 'center'
+    });
 
-    canvas.style.width = `${logicalW}px`;
-    canvas.style.height = `${logicalH}px`;
-
-    ctx.scale(dpr, dpr);
-
-    ctx.imageSmoothingEnabled = false;
-
-    const centerXForBtn = (sourceW / 2) - (pauseSpriteLocation['btn'].w / 2);
-    const centerYForBtn = (sourceH / 2) - (pauseSpriteLocation['btn'].h / 2);
-
-    const centerYForBtnOffset = -1;
-
-    const centerXForText = (sourceW / 2) - (10 / 2);
-    const centerYForText = (sourceH / 2) - (10 / 2);
-
-    const draw = () => {
-
-        ctx.clearRect(0, 0, logicalW, logicalH);
-
-        ctx.save();
-
-        ctx.scale(scale, scale);
-
-        ctx.drawImage(
-            settingsSprite,
-            7, 0, sourceW, sourceH,
-            0, 0, sourceW, sourceH
-        );
-
-        ctx.drawImage(
-            inventorySprite,
-            pauseSpriteLocation['closeBtn'].x, pauseSpriteLocation['closeBtn'].y, pauseSpriteLocation['closeBtn'].w, pauseSpriteLocation['closeBtn'].h,
-            sourceW - pauseSpriteLocation['closeBtn'].w, 0, pauseSpriteLocation['closeBtn'].w, pauseSpriteLocation['closeBtn'].h
-        )
-
-        ctx.fillStyle = 'black';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        ctx.font = `bold 10px 'Pixelify Sans', sans-serif`;
-
-        ctx.fillText("Time Played", centerXForText + 5, centerYForText - 40)
-        ctx.fillText(`${playTimeTillNow()}`, centerXForText + 5, centerYForText - 20);
-
-        const btn = pauseSpriteLocation['btn'];
-
-        ctx.drawImage(
-            settingsSprite,
-            btn.x, btn.y, btn.w, btn.h,
-            centerXForBtn, centerYForBtn, btn.w, btn.h
-        );
-
-        ctx.drawImage(
-            settingsSprite,
-            btn.x, btn.y, btn.w, btn.h,
-            centerXForBtn, centerYForBtn + 25, btn.w, btn.h
-        );
-
-        ctx.drawImage(
-            settingsSprite,
-            btn.x, btn.y, btn.w, btn.h,
-            centerXForBtn, centerYForBtn + 50, btn.w, btn.h
-        );
-
-        ctx.font = `bold 6px 'Pixelify Sans', sans-serif`;
-
-
-        ctx.fillText("Resume", centerXForBtn + (btn.w / 2), centerYForBtn + centerYForBtnOffset + (btn.h / 2) + 0.5);
-
-        ctx.fillText("Settings", centerXForBtn + (btn.w / 2), centerYForBtn + 25 + centerYForBtnOffset + (btn.h / 2) + 0.5);
-
-        ctx.fillText("Quit", centerXForBtn + (btn.w / 2), centerYForBtn + 50 + centerYForBtnOffset + (btn.h / 2) + 0.5);
-
-        ctx.restore();
-    }
-
-    await imagesLoaded();
-    draw();
-
-    pauseMenu.appendChild(canvas);
-    document.getElementById('game-container').appendChild(pauseMenu);
-
-    const getGameMousePos = (e) => {
-        const rect = canvas.getBoundingClientRect();
-
-        const mouseX = (e.clientX - rect.left) / scale;
-        const mouseY = (e.clientY - rect.top) / scale;
-
-        return { x: mouseX, y: mouseY };
+    const resumeBtn = document.createElement('canvas');
+    drawPixelButton(resumeBtn, 'RESUME', 'green', dpr, 1);
+    resumeBtn.onclick = () => {
+        resumeGame();
+        hidePauseMenu();
+        showPauseBtn();
     };
 
-    canvas.addEventListener('mousedown', (e) => {
-        const pos = getGameMousePos(e);
+    const settingsBtn = document.createElement('canvas');
+    drawPixelButton(settingsBtn, 'SETTINGS', 'blue', dpr, 1);
+    settingsBtn.onclick = () => {
+        showSettingsPage('pause');
+    };
 
-        const btn = pauseSpriteLocation['btn'];
+    const quitBtn = document.createElement('canvas');
+    drawPixelButton(quitBtn, 'QUIT', 'red', dpr, 1);
+    quitBtn.onclick = () => {
+        quitGame();
+        removeAllCoins();
+        hideRetryPage();
+        showStartPage();
+        hidePauseMenu();
+    };
 
-        if (pos.x >= centerXForBtn && pos.x <= centerXForBtn + btn.w &&
-            pos.y >= centerYForBtn && pos.y <= centerYForBtn + btn.h) {
-            resumeGame();
-            hidePauseMenu();
-        }
-        if (pos.x >= centerXForBtn && pos.x <= centerXForBtn + btn.w &&
-            pos.y >= centerYForBtn + 25 && pos.y <= centerYForBtn + 25 + btn.h) {
-            showSettingsPage();
-        }
-        if (pos.x >= centerXForBtn && pos.x <= centerXForBtn + btn.w &&
-            pos.y >= centerYForBtn + 50 && pos.y <= centerYForBtn + 50 + btn.h) {
-            quitGame();
-            removeAllCoins();
-            hideRetryPage();
-            showStartPage();
-            hidePauseMenu();
-        }
-        if (pos.x >= sourceW - pauseSpriteLocation['closeBtn'].w + 12 && pos.x <= sourceW &&
-            pos.y >= 0 && pos.y <= 0 + pauseSpriteLocation['closeBtn'].h) {
-            hidePauseMenu();
-        }
+    btnContainer.appendChild(resumeBtn);
+    btnContainer.appendChild(settingsBtn);
+    btnContainer.appendChild(quitBtn);
+    pauseModal.appendChild(btnContainer);
+
+    const closeCanvas = document.createElement('canvas');
+    const closeW = 9;
+    const closeH = 9;
+    const closeScale = 4;
+    const closeLogicalW = closeW * closeScale;
+    const closeLogicalH = closeH * closeScale;
+
+    closeCanvas.width = closeLogicalW * dpr;
+    closeCanvas.height = closeLogicalH * dpr;
+    Object.assign(closeCanvas.style, {
+        width: `${closeLogicalW}px`,
+        height: `${closeLogicalH}px`,
+        position: 'absolute',
+        top: '15px',
+        right: '15px',
+        cursor: 'pointer'
     });
 
-    canvas.addEventListener('mousemove', (e) => {
-        const pos = getGameMousePos(e);
-        const btn = pauseSpriteLocation['btn'];
-        const closeBtn = pauseSpriteLocation['closeBtn'];
+    const closectx = closeCanvas.getContext('2d');
+    closectx.imageSmoothingEnabled = false;
+    closectx.scale(dpr * closeScale, dpr * closeScale);
 
-        const onResume = pos.x >= centerXForBtn && pos.x <= centerXForBtn + btn.w &&
-            pos.y >= centerYForBtn && pos.y <= centerYForBtn + btn.h;
+    closectx.drawImage(
+        closeSprite,
+        356, 291, closeW, closeH,
+        0, 0, closeW, closeH
+    );
 
-        const onSettings = pos.x >= centerXForBtn && pos.x <= centerXForBtn + btn.w &&
-            pos.y >= centerYForBtn + 25 && pos.y <= centerYForBtn + 25 + btn.h;
+    closeCanvas.onclick = () => {
+        resumeGame();
+        hidePauseMenu();
+        showPauseBtn();
+    };
 
-        const onQuit = pos.x >= centerXForBtn && pos.x <= centerXForBtn + btn.w &&
-            pos.y >= centerYForBtn + 50 && pos.y <= centerYForBtn + 50 + btn.h;
+    pauseModal.appendChild(closeCanvas);
 
-        const onClose = pos.x >= sourceW - closeBtn.w + 12 && pos.x <= sourceW &&
-            pos.y >= 0 && pos.y <= closeBtn.h;
-
-        canvas.style.cursor = (onResume || onSettings || onQuit || onClose) ? 'pointer' : 'default';
-    });
+    pauseOverlay.appendChild(pauseModal);
+    document.getElementById('game-container').appendChild(pauseOverlay);
 }
 
 export function hidePauseMenu() {
