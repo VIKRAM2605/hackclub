@@ -400,6 +400,13 @@ export function animateNpc(ctx, frame, x, y, targetW, targetH) {
 export function drawQueue(ctx, deltaTime = 0) {
     ctx.imageSmoothingEnabled = false;
 
+    let safeDelta = deltaTime;
+    if (typeof deltaTime === 'number' && !isNaN(deltaTime)) {
+        safeDelta = Math.min(deltaTime, 100);
+    } else {
+        safeDelta = 16;
+    }
+
     for (let i = 0; i < leavingNpcs.length; i++) {
         const customer = leavingNpcs[i];
         initNpc(customer);
@@ -407,7 +414,7 @@ export function drawQueue(ctx, deltaTime = 0) {
         const frame = spriteData.walking[customer.animFrame];
 
         if (gameRunning === true) {
-            updateAnimation(customer, deltaTime);
+            updateAnimation(customer, safeDelta);
         }
 
         animateNpc(ctx, frame, customer.positionX, customer.positionY, 20, 34);
@@ -447,7 +454,7 @@ export function drawQueue(ctx, deltaTime = 0) {
             frame = spriteData.ordering;
         } else {
             if (gameRunning === true) {
-                updateAnimation(customer, deltaTime);
+                updateAnimation(customer, safeDelta);
             }
             frame = spriteData.walking[customer.animFrame];
         }
