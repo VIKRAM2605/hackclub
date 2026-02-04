@@ -514,8 +514,8 @@ export function addItemsToSlot(spriteName, objectId, unlockedSlots, templateName
 
     State[objectId][targetSlotId].spriteName = spriteName;
     State[objectId][targetSlotId].status = 'cooking';
-    State[objectId][targetSlotId].startTime = performance.now();
-    State[objectId][targetSlotId].pausedElapsed = null;
+    State[objectId][targetSlotId].accumulatedTime = 0;
+    State[objectId][targetSlotId].lastFrameTime = performance.now();
 
     targetSlot.style.borderColor = '#4CAF50';
 
@@ -582,9 +582,7 @@ function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, target
     const slotData = State[objectId][targetSlotId];
 
     if (!gameRunning) {
-        if (!slotData.pauseStartTime) {
-            slotData.pauseStartTime = currentTime;
-        }
+        slotData.lastFrameTime = currentTime;
 
         slotData.animationId = requestAnimationFrame((time) =>
             animateTimer(time, spriteName, ctx, targetSlot, objectId, targetSlotId, templateName, size)
@@ -592,15 +590,13 @@ function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, target
         return;
     }
 
-    if (slotData.pauseStartTime) {
-        const durationPaused = currentTime - slotData.pauseStartTime;
-        slotData.startTime += durationPaused;
-        slotData.pauseStartTime = null;
-    }
+    const deltaTime = currentTime - (slotData.lastFrameTime || currentTime);
+    slotData.lastFrameTime = currentTime;
+    const safeDelta = Math.min(deltaTime, 100);
+    slotData.accumulatedTime += safeDelta;
 
     const totalCookingTime = objectCoordinates[templateName].cookingTime;
-    const startTime = slotData.startTime;
-    const timeInMs = currentTime - startTime;
+    const timeInMs = slotData.accumulatedTime;
     const elapsedSeconds = Math.floor(timeInMs / 1000);
     const timeLeft = Math.max(0, totalCookingTime - elapsedSeconds);
 
@@ -672,14 +668,25 @@ function redrawSlot(slotId, objectId, slotCanvas, templateName, size) {
     const ctx = slotCanvas.getContext('2d');
     const totalCookingTime = objectCoordinates[templateName].cookingTime;
 
-    slotData.pauseStartTime ??= 0;
+    slotData.accumulatedTime ??= 0;
+
+    const now = performance.now();
+    slotData.lastFrameTime = now;
+
+    const timeAway = now - (slotData.lastFrameTime || now);
+
+    if (gameRunning && slotData.status === 'cooking') {
+        slotData.accumulatedTime += timeAway;
+    }
 
     slotCanvas.onclick = () => handleSlotClick(objectId, slotId, templateName, ctx, size);
 
-    if (slotData.status === 'cooking' && slotData.startTime) {
-        const now = performance.now();
-        const effectiveNow = slotData.pauseStartTime || now;
-        const timeInMs = effectiveNow - slotData.startTime;
+    if (slotData.animationId) {
+        cancelAnimationFrame(slotData.animationId);
+    }
+
+    if (slotData.status === 'cooking') {
+        const timeInMs = slotData.accumulatedTime;
         const elapsedSeconds = Math.floor(timeInMs / 1000);
         const timeLeft = Math.max(0, totalCookingTime - elapsedSeconds);
 

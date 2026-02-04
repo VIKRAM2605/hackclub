@@ -156,6 +156,14 @@ const imagesLoaded = () => {
     });
 };
 
+export function getNpcDialog(isKiller, category) {
+    const dialogSource = isKiller ? killerNpcDialogs : normalNpcDialogs;
+    const lines = dialogSource[category];
+    if (!lines) return "...";
+    const randomLineIndex = Math.floor(Math.random() * lines.length);
+    return lines[randomLineIndex];
+}
+
 export function resetNpcState() {
     spawnDelayTime = 20000;
     minSpawnDelay = 2000;
@@ -247,49 +255,51 @@ export function spawnNpc(currentTime) {
     nextSpawnDelay = 4000 + Math.random() * spawnDelayTime;
 }
 
-export function getNpcDialog(isKiller, category) {
-    const dialogSource = isKiller ? killerNpcDialogs : normalNpcDialogs;
-    const lines = dialogSource[category];
-    const randomLineIndex = Math.floor(Math.random() * lines.length);
-    return lines[randomLineIndex];
-}
-
 export function updateNpcQueue(deltaTime) {
     if (npcQueue.length === 0) return;
     if (gameRunning === false) return;
+
+    const safeDelta = Math.min(deltaTime, 100);
 
     for (let i = 0; i < npcQueue.length; i++) {
         const targetX = 325 - (2 * 50);
         const targetY = npcQueuePosition[i];
 
-        if (Math.abs(npcQueue[i].positionX - targetX) < 5) {
-            npcQueue[i].positionX = targetX;
-            npcQueue[i].status = "ordering";
-        } else {
-            npcQueue[i].positionX += 40 * (deltaTime / 1000);
-        }
-        if (i === 0 && Math.abs(npcQueue[0].positionX - targetX) < 5) {
-            npcQueue[0].patience -= deltaTime / 1000;
-            if (npcQueue[0].patience == patience / 2 && !npcQueue[0].reachedHalfPatience) {
-                npcQueue[0].dialog = getNpcDialog(npcQueue[0].isKiller, "waiting");
-                npcQueue[0].reachedHalfPatience = true;
+        if (npcQueue[i].positionX < targetX) {
+            npcQueue[i].positionX += 40 * (safeDelta / 1000);
+            if (npcQueue[i].positionX > targetX) {
+                npcQueue[i].positionX = targetX;
             }
-            if (npcQueue[0].patience < 0) {
-                console.log(`${npcQueue[0].order} left angry!`);
-                const modal = document.getElementById('npc-modal-overlay');
-                if (modal) {
-                    modal.remove()
+        }
+
+        if (npcQueue[i].positionX >= targetX) {
+            npcQueue[i].status = "ordering";
+
+            if (i === 0) {
+                npcQueue[0].patience -= safeDelta / 1000;
+
+                if (npcQueue[0].patience <= patience / 2 && !npcQueue[0].reachedHalfPatience) {
+                    npcQueue[0].dialog = getNpcDialog(npcQueue[0].isKiller, "waiting");
+                    npcQueue[0].reachedHalfPatience = true;
                 }
-                npcQueue[0].dialog = getNpcDialog(npcQueue[0].isKiller, "angry");
-                npcQueue[0].status = "unserved";
-                leavingNpcs.push(npcQueue[0]);
-                npcQueue.shift();
-                deductHealth();
-                decreasePatienceTime();
-                decreaseSpawnDelayTime();
-                npcsServedCount++;
-                queuePointer = npcQueue.length;
-                return;
+
+                if (npcQueue[0].patience < 0) {
+                    console.log(`${npcQueue[0].order} left angry!`);
+                    let modal = document.getElementById('npc-modal-overlay');
+                    if (modal) {
+                        modal.remove()
+                    }
+                    npcQueue[0].dialog = getNpcDialog(npcQueue[0].isKiller, "angry");
+                    npcQueue[0].status = "unserved";
+                    leavingNpcs.push(npcQueue[0]);
+                    npcQueue.shift();
+                    deductHealth();
+                    decreasePatienceTime();
+                    decreaseSpawnDelayTime();
+                    npcsServedCount++;
+                    queuePointer = npcQueue.length;
+                    return;
+                }
             }
         }
 
@@ -678,16 +688,16 @@ export async function openNpcModal() {
         foodCanvas.style.width = `${foodSize}px`;
         foodCanvas.style.height = `${foodSize}px`;
         foodCanvas.style.marginRight = '15px';
-        
+
         const foodCtx = foodCanvas.getContext('2d');
         foodCtx.imageSmoothingEnabled = false;
-        
+
         const sprite = sprites[item.food];
         if (sprite) {
             const scale = 2.5;
             const spriteW = sprite.w * scale;
             const spriteH = sprite.h * scale;
-            
+
             foodCtx.drawImage(
                 spriteSheet,
                 sprite.x, sprite.y, sprite.w, sprite.h,
@@ -695,7 +705,7 @@ export async function openNpcModal() {
                 spriteW, spriteH
             );
         }
-        
+
         row.appendChild(foodCanvas);
 
         const infoText = document.createElement('div');
@@ -747,7 +757,7 @@ export async function openNpcModal() {
 
     serveBtn.onclick = () => {
         if (!canAffordAll) return;
-        
+
         currentOrder.forEach(item => {
             cookedFoodCount[item.food] -= item.quantity;
         });
@@ -757,11 +767,11 @@ export async function openNpcModal() {
         npcQueue[0].dialog = getNpcDialog(npcQueue[0].isKiller, "served");
         npcQueue[0].status = "served";
         leavingNpcs.push(npcQueue[0]);
-        
+
         if (npcQueue[0].isKiller) {
             deductHealth();
         }
-        
+
         npcQueue.shift();
         decreasePatienceTime();
         decreaseSpawnDelayTime();
@@ -776,11 +786,11 @@ export async function openNpcModal() {
         npcQueue[0].dialog = getNpcDialog(npcQueue[0].isKiller, "angry");
         npcQueue[0].status = "unserved";
         leavingNpcs.push(npcQueue[0]);
-        
+
         if (!npcQueue[0].isKiller) {
             deductHealth();
         }
-        
+
         npcQueue.shift();
         decreasePatienceTime();
         decreaseSpawnDelayTime();
@@ -840,7 +850,7 @@ function drawNPCSpriteOnModal(skinName, canvas) {
 
     const sprite = npcSprites[skinName].canvas;
     const ctx = canvas.getContext('2d');
-    
+
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
