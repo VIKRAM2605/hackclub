@@ -28,6 +28,15 @@ export function makeRetry() {
         resetHealth();
         initWallet(500);
 
+        let modal = document.getElementById('npc-modal-overlay');
+        if (modal){
+            modal.remove();
+        }
+        modal = document.getElementById('cooking-modal-overlay');
+        if (modal){
+            modal.remove();
+        }
+
     } else {
         showStartPage();
     }

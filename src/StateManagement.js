@@ -460,7 +460,6 @@ function initializeSlots(objectId, unlockedSlots, templateName) {
         } else {
             slotCanvas.style.cursor = 'pointer';
 
-            // Restore previous state if exists
             if (State[objectId][slotId]) {
                 redrawSlot(slotId, objectId, slotCanvas, templateName, size);
             }
@@ -590,9 +589,18 @@ function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, target
         return;
     }
 
-    const deltaTime = currentTime - (slotData.lastFrameTime || currentTime);
+    if (!slotData.lastFrameTime || isNaN(slotData.lastFrameTime)) {
+        slotData.lastFrameTime = currentTime;
+    }
+
+    const deltaTime = currentTime - slotData.lastFrameTime;
+
+    if (isNaN(deltaTime)) deltaTime = 16;
+
     slotData.lastFrameTime = currentTime;
     const safeDelta = Math.min(deltaTime, 100);
+    if (isNaN(slotData.accumulatedTime)) slotData.accumulatedTime = 0;
+
     slotData.accumulatedTime += safeDelta;
 
     const totalCookingTime = objectCoordinates[templateName].cookingTime;
@@ -668,14 +676,16 @@ function redrawSlot(slotId, objectId, slotCanvas, templateName, size) {
     const ctx = slotCanvas.getContext('2d');
     const totalCookingTime = objectCoordinates[templateName].cookingTime;
 
-    slotData.accumulatedTime ??= 0;
+    if (typeof slotData.accumulatedTime !== 'number' || isNaN(slotData.accumulatedTime)) {
+        slotData.accumulatedTime = 0;
+    }
 
     const now = performance.now();
     slotData.lastFrameTime = now;
 
     const timeAway = now - (slotData.lastFrameTime || now);
 
-    if (gameRunning && slotData.status === 'cooking') {
+    if (gameRunning && slotData.status === 'cooking' && timeAway > 0) {
         slotData.accumulatedTime += timeAway;
     }
 
@@ -683,6 +693,7 @@ function redrawSlot(slotId, objectId, slotCanvas, templateName, size) {
 
     if (slotData.animationId) {
         cancelAnimationFrame(slotData.animationId);
+        slotData.animationId = null;
     }
 
     if (slotData.status === 'cooking') {

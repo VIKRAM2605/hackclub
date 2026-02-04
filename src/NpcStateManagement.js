@@ -259,7 +259,9 @@ export function updateNpcQueue(deltaTime) {
     if (npcQueue.length === 0) return;
     if (gameRunning === false) return;
 
-    const safeDelta = Math.min(deltaTime, 100);
+    const validDelta = (typeof deltaTime === 'number' && !isNaN(deltaTime)) ? deltaTime : 16;
+
+    const safeDelta = Math.min(validDelta, 100);
 
     for (let i = 0; i < npcQueue.length; i++) {
         const targetX = 325 - (2 * 50);
@@ -312,12 +314,17 @@ export function updateNpcQueue(deltaTime) {
 export function updateLeavingNpcs(deltaTime) {
     if (leavingNpcs.length == 0) return;
     if (gameRunning === false) return;
+    
+    const validDelta = (typeof deltaTime === 'number' && !isNaN(deltaTime)) ? deltaTime : 16;
+
+    const safeDelta = Math.min(validDelta, 100);
+
     const exitTargetX = 600;
     for (let i = leavingNpcs.length - 1; i >= 0; i--) {
         const npc = leavingNpcs[i];
 
         if (npc.positionX < exitTargetX) {
-            npc.positionX += 60 * (deltaTime / 1000);
+            npc.positionX += 60 * (safeDelta / 1000);
         } else {
             console.log(`${npc.id} has left the map.`)
             leavingNpcs.splice(i, 1);
@@ -365,7 +372,13 @@ export function initNpc(customer) {
 }
 
 export function updateAnimation(customer, deltaTime) {
-    customer.animTimer += deltaTime;
+    const validDelta = (typeof deltaTime === 'number' && !isNaN(deltaTime)) ? deltaTime : 16;
+
+    if (isNaN(customer.animTimer)) {
+        customer.animTimer = 0;
+    }
+
+    customer.animTimer += validDelta;
 
     const frameInterval = 150;
 
