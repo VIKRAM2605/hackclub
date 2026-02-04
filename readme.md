@@ -45,9 +45,14 @@ If you want to modify the code or run it on your machine:
 3.  **Run the game:**
     Simply double-click `index.html` or use the "Live Server" extension in VS Code.
 
-## 🔮 Future Updates
+## Future Updates
 *   More Cooking Stations and Food varieties.
 *   Mobile support (Touch controls).
 
 ## Contributing
 Found a bug in the soup? Open an issue or submit a pull request!
+
+## Suggestions
+If you want to suggest something in the game feel free to reach out! 
+*   **Email:** [Click here to email me](mailto:vikramhero26@gmail.com)
+*   **GitHub:** [VIKRAM2605](https://github.com/VIKRAM2605)
