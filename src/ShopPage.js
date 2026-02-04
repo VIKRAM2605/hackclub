@@ -191,7 +191,7 @@ export async function showShopModal() {
 
     const moneyDisplay = document.createElement('div');
     const updateMoneyDisplay = () => {
-        moneyDisplay.textContent = `💰 Your Money: $${getBalance().toFixed(2)}`;
+        moneyDisplay.textContent = `Your Money: $${getBalance().toFixed(2)}`;
     };
     updateMoneyDisplay();
     

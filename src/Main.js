@@ -10,7 +10,7 @@ import { initStartPageButton } from "./ShopPage.js";
 import { showStartPage, hideStartPage } from "./StartPage.js";
 import { resetState, State } from "./StateManagement.js";
 import { resetCookedFoodCount } from "./TotalCookedFoods.js";
-import { displayBalance, hideBalance } from "./Wallet.js";
+import { displayBalance, hideBalance, initWallet } from "./Wallet.js";
 
 
 hideBalance();
@@ -26,6 +26,7 @@ export function makeRetry() {
         resetNpcState();
         resetPlayer();
         resetHealth();
+        initWallet(500);
 
     } else {
         showStartPage();
