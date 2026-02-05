@@ -47,4 +47,4 @@ export function hideBalance() {
     wallet.style.display = 'none'
 }
 
-initWallet(500);
+initWallet(300);

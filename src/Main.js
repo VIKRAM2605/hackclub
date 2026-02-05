@@ -27,7 +27,7 @@ export function makeRetry() {
         resetNpcState();
         resetPlayer();
         resetHealth();
-        initWallet(500);
+        initWallet(300);
 
         let modal = document.getElementById('npc-modal-overlay');
         if (modal) {
@@ -49,7 +49,7 @@ export function makeRetry() {
         resetNpcState();
         resetPlayer();
         resetHealth();
-        initWallet(500);
+        initWallet(300);
 
         let modal = document.getElementById('npc-modal-overlay');
         if (modal) {
