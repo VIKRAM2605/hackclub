@@ -1,12 +1,9 @@
-import { baseH, baseW, canvas, ctx } from './CharacterMovement.js';
+import { baseH, baseW, ctx } from './CharacterMovement.js';
 
 export const tileSize = 32;
 
 export const spriteSheet = new Image();
 spriteSheet.src = 'assets/professional_kitchen_withshadows_edited.png';
-
-const doorSpriteSheet = new Image();
-doorSpriteSheet.src = 'assets/professional_kitchen_room_door_tiles.png';
 
 const dividerSpriteSheet = new Image();
 dividerSpriteSheet.src = 'assets/divider-Photoroom.png';
@@ -54,23 +51,8 @@ export const sprites = {
 
 };
 
-const doorSprite = {
-    openDoorType1: { x: 208, y: 292, w: 320, h: 69, sw: 320, sh: 69 },
-};
 
 export let kitchenSpriteLoaded = false;
-
-export function drawDoor(spriteName, col, row) {
-    const sprite = doorSprite[spriteName.slice(0, -1)];
-    const x = Math.round(col * tileSize + (tileSize - sprite.w) / 2);
-    const y = Math.round(row * tileSize + (tileSize - sprite.h) / 2);
-
-    ctx.drawImage(
-        doorSpriteSheet,
-        sprite.x, sprite.y, sprite.w, sprite.h,
-        x, y, sprite.sw, sprite.sh
-    );
-}
 
 export function drawFloor() {
     const cols = Math.floor(baseW / tileSize);

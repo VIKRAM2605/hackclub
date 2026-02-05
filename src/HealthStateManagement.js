@@ -1,5 +1,6 @@
 import { baseW } from "./CharacterMovement.js";
 import { gameRunning } from "./GameMechanics.js";
+import { playHurtSound, playLoseSound } from "./MusicAndSound.js";
 import { showRetryPage } from "./RetryPage.js";
 
 const canvas = document.getElementById('canvas1');
@@ -52,8 +53,10 @@ export function deductHealth() {
     if (lastIndexOfOne !== -1) {
         health[lastIndexOfOne] = 0;
     }
+    playHurtSound();
     const dead = isDead();
     if (dead) {
+        playLoseSound();
         console.log("Player died");
         showRetryPage();
     }

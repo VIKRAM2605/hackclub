@@ -1,8 +1,7 @@
-import { pauseGame, quitGame, resumeGame } from "./GameMechanics.js";
-import { removeAllCoins } from "./RandomCoinDrops.js";
-import { hideRetryPage } from "./RetryPage.js";
+import { pauseGame, resumeGame } from "./GameMechanics.js";
+import { makeRetry } from "./Main.js";
+import { playClickSound } from "./MusicAndSound.js";
 import { showSettingsPage } from "./Settings.js";
-import { showStartPage } from "./StartPage.js";
 import { playTimeTillNow } from "./TimeCalculation.js";
 
 const closeSprite = new Image();
@@ -85,9 +84,8 @@ function drawPixelButton(canvas, text, theme, dpr, scale, isDisabled = false) {
 }
 
 export function pauseButton() {
-    let pauseBtn = document.getElementById('pause-btn-main');
-    if (pauseBtn) return;
-    pauseBtn = document.createElement('div');
+
+    let pauseBtn = document.createElement('div');
     pauseBtn.id = 'pause-btn-main';
     pauseBtn.style.position = 'absolute';
     pauseBtn.style.cursor = 'pointer';
@@ -138,6 +136,7 @@ export function pauseButton() {
     pauseBtn.appendChild(pauseCanvas);
 
     pauseCanvas.addEventListener('click', (e) => {
+        playClickSound();
         e.stopPropagation();
         hidePauseBtn();
         pauseGame();
@@ -239,6 +238,7 @@ export async function showPauseMenu() {
     const resumeBtn = document.createElement('canvas');
     drawPixelButton(resumeBtn, 'RESUME', 'green', dpr, 1);
     resumeBtn.onclick = () => {
+        playClickSound();
         resumeGame();
         hidePauseMenu();
         showPauseBtn();
@@ -247,17 +247,17 @@ export async function showPauseMenu() {
     const settingsBtn = document.createElement('canvas');
     drawPixelButton(settingsBtn, 'SETTINGS', 'blue', dpr, 1);
     settingsBtn.onclick = () => {
+        playClickSound();
         showSettingsPage('pause');
     };
 
     const quitBtn = document.createElement('canvas');
     drawPixelButton(quitBtn, 'QUIT', 'red', dpr, 1);
     quitBtn.onclick = () => {
-        quitGame();
-        removeAllCoins();
-        hideRetryPage();
-        showStartPage();
         hidePauseMenu();
+        playClickSound();
+        localStorage.setItem("isRetry", "false");
+        makeRetry();
     };
 
     btnContainer.appendChild(resumeBtn);
@@ -294,6 +294,7 @@ export async function showPauseMenu() {
     );
 
     closeCanvas.onclick = () => {
+        playClickSound();
         resumeGame();
         hidePauseMenu();
         showPauseBtn();

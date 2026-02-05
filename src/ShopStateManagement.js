@@ -3,7 +3,7 @@ import { UpperBoundForCoin } from "./GameMechanics.js";
 import { healHealth } from "./HealthStateManagement.js";
 import { killerChance } from "./NpcStateManagement.js";
 import { objectCoordinates } from "./ObjectCoordinates.js";
-import { getBalance, deductBalance } from "./Wallet.js";
+import { deductBalance } from "./Wallet.js";
 
 export const upgrades = {
     grillLevel1: {

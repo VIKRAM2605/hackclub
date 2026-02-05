@@ -1,4 +1,5 @@
-import { hideStartPage, showStartPage } from "./StartPage.js";
+import { playClickSound, setBgMusicVolume, setSoundEffectsVolume } from "./MusicAndSound.js";
+import { showStartPage } from "./StartPage.js";
 
 const settingsSprite = new Image();
 settingsSprite.src = 'assets/Settings.png';
@@ -9,8 +10,8 @@ sliderSprite.src = 'assets/slider-Photoroom.png';
 const closeSprite = new Image();
 closeSprite.src = 'assets/Main_tiles.png';
 
-let globalSound = 0.5;
-let globalMusic = 0.5;
+export let globalSound = 0.5;
+export let globalMusic = 0.5;
 let masterGain = null;
 
 const imagesLoaded = () => {
@@ -130,14 +131,14 @@ export async function showSettingsPage(location) {
         fontFamily: "'Pixelify Sans', sans-serif",
         fontSize: '48px',
         fontWeight: 'bold',
-        color: '#5D4037', 
+        color: '#5D4037',
         marginBottom: '20px',
         textShadow: '3px 3px 0px rgba(0,0,0,0.1)'
     });
     settingsModal.appendChild(title);
 
     const scale = 1.5;
-    const canvasLogicalW = 250; 
+    const canvasLogicalW = 250;
     const canvasLogicalH = 100;
     const dpr = window.devicePixelRatio || 1;
 
@@ -154,7 +155,7 @@ export async function showSettingsPage(location) {
     const coords = {
         musicIcon: { x: 0, y: 242, w: 13, h: 13 },
         soundIcon: { x: 0, y: 227, w: 13, h: 12 },
-        tube: { x: 298, y: 251, w: 203, h: 46, sw: 100, sh: 16 }, 
+        tube: { x: 298, y: 251, w: 203, h: 46, sw: 100, sh: 16 },
         knob: { x: 520, y: 238, w: 46, h: 72, sw: 10, sh: 22 }
     };
 
@@ -178,7 +179,7 @@ export async function showSettingsPage(location) {
         ctx.drawImage(sliderSprite, coords.tube.x, coords.tube.y, coords.tube.w, coords.tube.h, tubeX, row1Y, tubeWidth, 16);
         const soundKnobX = knobMinX + (currentSound * (knobMaxX - knobMinX));
         ctx.drawImage(sliderSprite, coords.knob.x, coords.knob.y, coords.knob.w, coords.knob.h, soundKnobX, row1Y - 3, coords.knob.sw, coords.knob.sh);
-        
+
         ctx.fillStyle = '#5D4037';
         ctx.font = "bold 12px 'Pixelify Sans', sans-serif";
         ctx.textAlign = 'left';
@@ -189,7 +190,7 @@ export async function showSettingsPage(location) {
         ctx.drawImage(sliderSprite, coords.tube.x, coords.tube.y, coords.tube.w, coords.tube.h, tubeX, row2Y, tubeWidth, 16);
         const musicKnobX = knobMinX + (currentMusic * (knobMaxX - knobMinX));
         ctx.drawImage(sliderSprite, coords.knob.x, coords.knob.y, coords.knob.w, coords.knob.h, musicKnobX, row2Y - 3, coords.knob.sw, coords.knob.sh);
-        
+
         ctx.fillText(`${Math.floor(currentMusic * 100)}%`, textX, row2Y + 8);
     };
 
@@ -206,7 +207,7 @@ export async function showSettingsPage(location) {
 
     sliderCanvas.addEventListener('mousedown', (e) => {
         const pos = getMousePos(e);
-        
+
         const sKnobX = knobMinX + (currentSound * (knobMaxX - knobMinX));
         if (pos.x >= sKnobX && pos.x <= sKnobX + coords.knob.sw && pos.y >= row1Y - 3 && pos.y <= row1Y + 20) {
             activeKnobId = 'sound';
@@ -227,19 +228,20 @@ export async function showSettingsPage(location) {
 
             if (activeKnobId === 'sound') {
                 currentSound = pct;
-                setGameVolume(currentSound);
+                setSoundEffectsVolume(currentSound);
             } else if (activeKnobId === 'music') {
                 currentMusic = pct;
+                setBgMusicVolume(currentMusic);
             }
             drawSliders();
             sliderCanvas.style.cursor = 'grabbing';
         } else {
             const sKnobX = knobMinX + (currentSound * (knobMaxX - knobMinX));
             const mKnobX = knobMinX + (currentMusic * (knobMaxX - knobMinX));
-            
+
             const onSound = pos.x >= sKnobX && pos.x <= sKnobX + coords.knob.sw && pos.y >= row1Y - 3 && pos.y <= row1Y + 20;
             const onMusic = pos.x >= mKnobX && pos.x <= mKnobX + coords.knob.sw && pos.y >= row2Y - 3 && pos.y <= row2Y + 20;
-            
+
             sliderCanvas.style.cursor = (onSound || onMusic) ? 'grab' : 'default';
         }
     };
@@ -259,6 +261,7 @@ export async function showSettingsPage(location) {
     const saveBtn = document.createElement('canvas');
     drawPixelButton(saveBtn, 'SAVE', 'green', dpr, 1);
     saveBtn.onclick = () => {
+        playClickSound();
         globalSound = currentSound;
         globalMusic = currentMusic;
         console.log("Settings Saved", globalSound, globalMusic);
@@ -268,7 +271,9 @@ export async function showSettingsPage(location) {
     const declineBtn = document.createElement('canvas');
     drawPixelButton(declineBtn, 'DECLINE', 'red', dpr, 1);
     declineBtn.onclick = () => {
-        setGameVolume(globalSound); 
+        playClickSound();
+        setSoundEffectsVolume(globalSound);
+        setBgMusicVolume(globalMusic);
         cleanup();
     };
 
@@ -279,7 +284,7 @@ export async function showSettingsPage(location) {
     const closeCanvas = document.createElement('canvas');
     const closeW = 9;
     const closeH = 9;
-    const closeScale = 4; 
+    const closeScale = 4;
     const closeLogicalW = closeW * closeScale;
     const closeLogicalH = closeH * closeScale;
 
@@ -296,7 +301,7 @@ export async function showSettingsPage(location) {
 
     const closectx = closeCanvas.getContext('2d');
     closectx.imageSmoothingEnabled = false;
-    closectx.scale(dpr * closeScale, dpr * closeScale); 
+    closectx.scale(dpr * closeScale, dpr * closeScale);
 
     closectx.drawImage(
         closeSprite,
@@ -305,12 +310,14 @@ export async function showSettingsPage(location) {
     );
 
     closeCanvas.onclick = () => {
-        setGameVolume(globalSound);
+        playClickSound();
+        setSoundEffectsVolume(globalSound);
+        setBgMusicVolume(globalMusic);
         cleanup();
     };
 
     settingsModal.appendChild(closeCanvas);
-    
+
     settingsOverlay.appendChild(settingsModal);
     document.getElementById('game-container').appendChild(settingsOverlay);
 
@@ -328,11 +335,5 @@ export function hideSettingsPage() {
     const settingsOverlay = document.getElementById('settings-overlay');
     if (settingsOverlay) {
         settingsOverlay.remove();
-    }
-}
-
-export function setGameVolume(volume) {
-    if (window.audioContext && masterGain) {
-        masterGain.gain.value = volume;
     }
 }

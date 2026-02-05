@@ -1,4 +1,5 @@
 import { gameRunning } from "./GameMechanics.js";
+import { playClickSound, playCookingSound, playFoodReadySound, stopCookingSound } from "./MusicAndSound.js";
 import { objectCoordinates } from "./ObjectCoordinates.js";
 import { drawSpriteFromSlotToMainCanvs, sprites, spriteSheet } from "./SceneCreation.js";
 import { cookedFoodCount } from "./TotalCookedFoods.js";
@@ -7,9 +8,6 @@ export let State = {};
 
 const closeSprite = new Image();
 closeSprite.src = 'assets/Main_tiles.png';
-
-const inventorySprite = new Image();
-inventorySprite.src = 'assets/Inventory.png';
 
 const lockSprite = new Image();
 lockSprite.src = 'assets/lock-Photoroom.png';
@@ -69,14 +67,13 @@ const intaractableStovePositionsForSoup = [
 const imagesLoaded = () => {
     return new Promise((resolve) => {
         let loadedCount = 0;
-        const totalImages = 4;
+        const totalImages = 3;
         const onload = () => {
             loadedCount++;
             if (loadedCount === totalImages) resolve();
         };
 
         if (closeSprite.complete) loadedCount++; else closeSprite.onload = onload;
-        if (inventorySprite.complete) loadedCount++; else inventorySprite.onload = onload;
         if (lockSprite.complete) loadedCount++; else lockSprite.onload = onload;
         if (timerSprite.complete) loadedCount++; else timerSprite.onload = onload;
 
@@ -288,6 +285,7 @@ export async function showCookingModal(templateName, objectId, unlockedSlots) {
     setTimeout(() => { isReady = true; }, 200);
 
     const closeModal = () => {
+        playClickSound();
         if (!isReady) return;
         overlay.remove();
         document.removeEventListener('keydown', handleEscape);
@@ -520,6 +518,8 @@ export function addItemsToSlot(spriteName, objectId, unlockedSlots, templateName
 
     targetSlot.onclick = () => handleSlotClick(objectId, targetSlotId, templateName, ctx, size);
 
+    playCookingSound(spriteName,objectId,targetSlotId);
+
     drawStationPreview(templateName, objectId);
 
     State[objectId][targetSlotId].animationId = requestAnimationFrame((currentTime) =>
@@ -539,6 +539,9 @@ function handleSlotClick(objectId, slotId, templateName, ctx, size) {
         if (State[objectId][slotId].animationId) {
             cancelAnimationFrame(State[objectId][slotId].animationId);
         }
+
+        stopCookingSound(objectId,slotId);
+        playClickSound();
 
         ctx.clearRect(0, 0, size, size);
 
@@ -560,6 +563,9 @@ function handleSlotClick(objectId, slotId, templateName, ctx, size) {
         if (State[objectId][slotId].animationId) {
             cancelAnimationFrame(State[objectId][slotId].animationId);
         }
+
+        stopCookingSound(objectId,slotId);
+        playClickSound();
 
         ctx.clearRect(0, 0, size, size);
 
@@ -633,6 +639,9 @@ function animateTimer(currentTime, spriteName, ctx, targetSlot, objectId, target
         console.log("cooked food");
         slotData.animationId = null;
         slotData.status = 'cooked';
+
+        stopCookingSound(objectId, targetSlotId);
+        playFoodReadySound();
 
         drawFoodInSlot(ctx, spriteName.replace('unCooked', 'cooked'), size);
 

@@ -1,6 +1,6 @@
 import { objectCoordinates, renderObject } from "./ObjectCoordinates.js";
 import { drawFloor, kitchenSpriteLoaded, tileSize } from "./SceneCreation.js";
-import { decreasePatienceTime, decreaseSpawnDelayTime, drawQueue, isFirstNpcIntaractable, openNpcModal, shouldSpawnNpc, spawnNpc, updateLeavingNpcs, updateNpcQueue } from "./NpcStateManagement.js";
+import { drawQueue, isFirstNpcIntaractable, openNpcModal, shouldSpawnNpc, spawnNpc, updateLeavingNpcs, updateNpcQueue } from "./NpcStateManagement.js";
 import { npcConvoTemplate } from "./InteractiveModals.js";
 import { startTimer } from "./TimeCalculation.js";
 import { checkSpillCollision, drawSpills, updateSpills } from "./RandomOilSpillage.js";
@@ -8,6 +8,7 @@ import { gameRunning } from "./GameMechanics.js";
 import { showHealth } from "./HealthStateManagement.js";
 import { showCookedFood } from "./DisplayCookedFood.js";
 import { drawCookingSpriteOnMainCanvas } from "./StateManagement.js";
+import { playClickSound, playSlipSound } from "./MusicAndSound.js";
 
 
 export const canvas = document.getElementById('canvas1');
@@ -477,6 +478,9 @@ export function gameLoop(currentTime) {
     ctx.restore()
 
     const isSlipping = checkSpillCollision(player.x, player.y);
+    if (isSlipping) {
+        playSlipSound();
+    }
 
     updatePlayer(isSlipping, deltaTime);
 
@@ -506,7 +510,7 @@ export function gameLoop(currentTime) {
 
     updateLeavingNpcs(deltaTime);
 
-    drawQueue(ctx,deltaTime);
+    drawQueue(ctx, deltaTime);
 
     const nearby = getNearByInteractables(player.x, player.y);
     const nearbyNpc = isFirstNpcIntaractable(player.x, player.y);
@@ -577,12 +581,14 @@ document.addEventListener('keydown', (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 interactWithObject(obj);
+                playClickSound();
             }
             break;
         case 'f':
         case 'F':
             const isNpcNear = isFirstNpcIntaractable(player.x, player.y);
             if (isNpcNear) openNpcModal(npcConvoTemplate);
+            playClickSound();
             e.preventDefault();
             break;
     }

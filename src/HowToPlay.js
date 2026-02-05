@@ -1,5 +1,4 @@
-const buttonsSprite = new Image();
-buttonsSprite.src = 'assets/Buttons.png';
+import { playClickSound } from "./MusicAndSound.js";
 
 export function drawPixelButton(canvas, text, theme, dpr, scale, isDisabled = false) {
     if (!canvas) return;
@@ -189,6 +188,7 @@ export function showHowToPlay() {
     drawPixelButton(closeButtonCanvas, 'CLOSE', 'red', dpr, 1);
 
     closeButtonCanvas.onclick = () => {
+        playClickSound();
         hideHowToPlay();
     };
 

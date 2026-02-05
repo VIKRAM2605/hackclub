@@ -2,6 +2,7 @@ import { handleStartGame } from "./Main.js";
 import { hidePauseMenu } from "./PauseMenu.js";
 import { showSettingsPage } from "./Settings.js";
 import { showHowToPlay } from "./HowToPlay.js";
+import { playClickSound } from "./MusicAndSound.js";
 
 function drawPixelButton(canvas, text, theme, dpr, scale, isDisabled = false) {
     if (!canvas) return;
@@ -24,7 +25,7 @@ function drawPixelButton(canvas, text, theme, dpr, scale, isDisabled = false) {
         green: { main: '#4caf50', light: '#80e27e', dark: '#087f23', border: '#1b5e20', text: '#fff' },
         red: { main: '#d32f2f', light: '#ff6659', dark: '#9a0007', border: '#5d1010', text: '#fff' },
         gray: { main: '#555555', light: '#777777', dark: '#333333', border: '#222222', text: '#aaaaaa' },
-        
+
         blue: { main: '#2196f3', light: '#64b5f6', dark: '#0d47a1', border: '#1565c0', text: '#fff' },
         orange: { main: '#ff9800', light: '#ffb74d', dark: '#e65100', border: '#bf360c', text: '#fff' }
     };
@@ -79,7 +80,7 @@ export async function showStartPage() {
 
     startPage = document.createElement('div');
     startPage.id = 'start-page';
-    
+
     Object.assign(startPage.style, {
         display: 'flex',
         flexDirection: 'column',
@@ -107,8 +108,8 @@ export async function showStartPage() {
     });
 
     const bgCtx = bgCanvas.getContext('2d');
-    bgCtx.fillStyle = 'rgba(139, 69, 19, 0.1)'; 
-    
+    bgCtx.fillStyle = 'rgba(139, 69, 19, 0.1)';
+
     const patternSize = 20;
     for (let x = 0; x < bgCanvas.width; x += patternSize) {
         for (let y = 0; y < bgCanvas.height; y += patternSize) {
@@ -165,17 +166,26 @@ export async function showStartPage() {
     const startBtn = document.createElement('canvas');
     startBtn.id = 'start-btn-canvas';
     drawPixelButton(startBtn, 'START GAME', 'green', dpr, 1);
-    startBtn.onclick = () => handleStartGame();
+    startBtn.onclick = () => {
+        playClickSound();
+        handleStartGame();
+    }
 
     const howToPlayBtn = document.createElement('canvas');
     howToPlayBtn.id = 'howtoplay-btn-canvas';
     drawPixelButton(howToPlayBtn, 'HOW TO PLAY', 'blue', dpr, 1);
-    howToPlayBtn.onclick = () => showHowToPlay();
+    howToPlayBtn.onclick = () => {
+        playClickSound();
+        showHowToPlay();
+    }
 
     const settingsBtn = document.createElement('canvas');
     settingsBtn.id = 'settings-btn-canvas';
     drawPixelButton(settingsBtn, 'SETTINGS', 'orange', dpr, 1);
-    settingsBtn.onclick = () => showSettingsPage('start');
+    settingsBtn.onclick = () => {
+        playClickSound();
+        showSettingsPage('start');
+    }
 
     buttonContainer.appendChild(startBtn);
     buttonContainer.appendChild(howToPlayBtn);
@@ -188,7 +198,7 @@ export async function showStartPage() {
     startPage.appendChild(contentContainer);
 
     await document.fonts.ready;
-    
+
     document.getElementById('game-container').appendChild(startPage);
 
     hidePauseMenu();

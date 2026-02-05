@@ -1,5 +1,6 @@
-import { handleStartGame, makeRetry } from "./Main.js";
-import { endTimer, startTimer } from "./TimeCalculation.js";
+import { makeRetry } from "./Main.js";
+import { playClickSound } from "./MusicAndSound.js";
+import { endTimer } from "./TimeCalculation.js";
 
 let overlayCanvas = null;
 let isVisible = false;
@@ -88,11 +89,13 @@ function createOverlayCanvas() {
 
     overlayCanvas.addEventListener('click', () => {
         if (hoveredButton === 'retry') {
+            playClickSound();
 
             sessionStorage.setItem('isRetry', 'true');
             makeRetry()
             
         } else if (hoveredButton === 'quit') {
+            playClickSound();
             window.location.reload();
         }
     });

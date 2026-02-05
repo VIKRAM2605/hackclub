@@ -1,9 +1,8 @@
-import { currentBalance, addBalance, initWallet } from "./Wallet.js";
-import { pauseAllCoins, randomInt, removeAllCoins, resumeAllCoins, spawncoin } from "./RandomCoinDrops.js";
-import { pauseAllActiveSpills, removeAllActiveSpills, resumeAllPausedSpills } from "./RandomOilSpillage.js";
-import { showHealth } from "./HealthStateManagement.js";
-import { hideRetryPage } from "./RetryPage.js";
-import { hideShopBtn, showShopBtn } from "./ShopPage.js";
+import { currentBalance, addBalance } from "./Wallet.js";
+import { pauseAllCoins, randomInt, resumeAllCoins, spawncoin } from "./RandomCoinDrops.js";
+import { pauseAllActiveSpills, resumeAllPausedSpills } from "./RandomOilSpillage.js";
+import { showShopBtn } from "./ShopPage.js";
+import { playCoinSound } from "./MusicAndSound.js";
 
 var spawnInterval = null;
 export var UpperBoundForCoin = 120000
@@ -35,6 +34,7 @@ function coinClickHandler(e) {
     if (e.target.classList.contains('coin')) {
         addBalance(randomInt(30, 100));
         e.target.remove();
+        playCoinSound();
     }
 }
 
@@ -47,8 +47,4 @@ export function resumeGame() {
     }, randomInt(60000, 120000));
     resumeAllPausedSpills(performance.now())
 
-}
-
-export function quitGame() {
-    window.location.reload()
 }

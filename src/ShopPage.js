@@ -1,4 +1,5 @@
 import { player } from "./CharacterMovement.js";
+import { playClickSound, playUnlockSound } from "./MusicAndSound.js";
 import { objectCoordinates } from "./ObjectCoordinates.js";
 import { sprites, spriteSheet } from "./SceneCreation.js";
 import { attemptSkillUpgrade, attemptUpgrade, getNextUpgradeForObject, getNextUpgradeForSkills, skillNameForUpgrades, skillSpriteForUpgrades, skillUpgrades } from "./ShopStateManagement.js";
@@ -118,6 +119,7 @@ export function buildStartPageButton() {
     window.addEventListener('resize', updatePosition);
 
     shopBtnCanvas.onclick = (e) => {
+        playClickSound();
         e.stopPropagation();
         showShopModal();
     };
@@ -236,6 +238,7 @@ export async function showShopModal() {
                     cost,
                     'object',
                     () => {
+                        playUnlockSound();
                         const result = attemptUpgrade(objName);
                         if (result.success) {
                             console.log("Upgraded!");
@@ -265,6 +268,7 @@ export async function showShopModal() {
                     cost,
                     'skill',
                     () => {
+                        playUnlockSound();
                         const result = attemptSkillUpgrade(skillName);
                         if (result.success) {
                             console.log("Upgraded!");
@@ -416,6 +420,7 @@ export async function showShopModal() {
     );
 
     closeCanvas.onclick = () => {
+        playClickSound();
         hideShopModal();
     };
 

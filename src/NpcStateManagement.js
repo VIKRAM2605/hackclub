@@ -5,6 +5,7 @@ import { addBalance } from "./Wallet.js";
 import { cookedFoodCount } from "./TotalCookedFoods.js";
 import { deductHealth } from "./HealthStateManagement.js";
 import { sprites, spriteSheet } from "./SceneCreation.js";
+import { playClickSound } from "./MusicAndSound.js";
 
 let spawnDelayTime = 20000;
 let minSpawnDelay = 2000;
@@ -314,7 +315,7 @@ export function updateNpcQueue(deltaTime) {
 export function updateLeavingNpcs(deltaTime) {
     if (leavingNpcs.length == 0) return;
     if (gameRunning === false) return;
-    
+
     const validDelta = (typeof deltaTime === 'number' && !isNaN(deltaTime)) ? deltaTime : 16;
 
     const safeDelta = Math.min(validDelta, 100);
@@ -572,6 +573,8 @@ export async function openNpcModal() {
 
     await imagesLoaded();
 
+    playClickSound();
+
     let modal = document.getElementById('npc-modal-overlay');
     if (modal) return;
 
@@ -776,6 +779,8 @@ export async function openNpcModal() {
     drawPixelButton(serveBtn, serveText, 'green', dpr, 1, !canAffordAll);
 
     serveBtn.onclick = () => {
+        playClickSound();
+
         if (!canAffordAll) return;
 
         currentOrder.forEach(item => {
@@ -803,6 +808,8 @@ export async function openNpcModal() {
     drawPixelButton(refuseBtn, "REJECT", 'red', dpr, 1);
 
     refuseBtn.onclick = () => {
+        playClickSound();
+
         npcQueue[0].dialog = getNpcDialog(npcQueue[0].isKiller, "angry");
         npcQueue[0].status = "unserved";
         leavingNpcs.push(npcQueue[0]);
@@ -850,7 +857,10 @@ export async function openNpcModal() {
         0, 0, closeW, closeH
     );
 
-    closeCanvas.onclick = () => overlay.remove();
+    closeCanvas.onclick = () => {
+        overlay.remove();
+        playClickSound();
+    }
     modal_box.appendChild(closeCanvas);
 
     const handleEscape = (e) => {

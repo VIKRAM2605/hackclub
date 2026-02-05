@@ -1,4 +1,3 @@
-import { grillTemplate, shopTemplate } from "./InteractiveModals.js";
 import { drawSprite } from "./SceneCreation.js";
 import { showCookingModal } from "./StateManagement.js";
 
